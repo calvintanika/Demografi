@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HCaja Monthly Workforce Report — HCIS Anteraja</title>
+<link rel="icon" href="data:,">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ============================================================
+   HCaja Design System v1.0 — enterprise, flat, light UI
+   Official colors, Anteraja_Brand_Guide.pptx:
+   Primary   : Magenta Sigap   #ED0677
+   Accent    : Kuning Ramah    #FFCB05
+   Secondary : Biru Terpercaya #496AAA · Maroon Amanah #841945
+   ============================================================ */
+:root{
+  --bg:#FFFFFF; --card:#FFFFFF; --ink:#111827; --sub:#6B7280; --disabled:#9CA3AF; --line:#E5E7EB;
+  --primary:#ED0677; --primary-soft:#FDE6F0;
+  --secondary:#334155; --secondary-soft:#F1F5F9;
+  --blue:#496AAA; --blue-soft:#EEF1F8;
+  --maroon:#841945; --maroon-soft:#FBEAEF;
+  --yellow:#FFCB05; --yellow-soft:#FFF9E0;
+  --pink-soft:#F6AABF; --slate-head:#F8FAFC;
+  --green:#16A34A; --green-soft:#F0FDF4;
+  --red:#DC2626; --red-soft:#FEF2F2;
+  --amber:#D97706; --amber-soft:#FFFBEB;
+  --info:#2563EB; --info-soft:#EFF6FF;
+  --shadow:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;scroll-padding-top:118px;}
+body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family:'Inter','Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  padding-bottom:40px;}
+/* ---------- sticky control bar ---------- */
+.ctrlbar{position:sticky;top:0;z-index:20;background:#FFFFFF;border-bottom:1px solid var(--line);
+  padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.ctrlbar img{height:28px;width:auto;flex-shrink:0;}
+.ctrlbar .ttl{color:var(--ink);font-weight:600;font-size:13.5px;margin-right:auto;min-width:150px;}
+.ctrlbar .ttl .meta{color:var(--sub);font-weight:400;font-size:10.5px;}
+.ctrlbar label{color:var(--secondary);font-size:11.5px;display:flex;align-items:center;gap:6px;}
+.ctrlbar select{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;
+  padding:7px 10px;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;}
+.btn{border-radius:12px;height:40px;padding:0 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;}
+.btn.primary{background:var(--primary);color:#fff;border:none;}
+.btn.secondary{background:#FFFFFF;color:var(--secondary);border:1px solid var(--line);}
+.btn:disabled{opacity:.6;cursor:wait;}
+/* section index chips */
+.secnav{position:sticky;top:65px;z-index:19;background:#fff;border-bottom:1px solid var(--line);
+  padding:8px 16px;display:flex;gap:6px;overflow-x:auto;}
+.secnav a{flex:none;text-decoration:none;font-size:11px;font-weight:600;color:var(--secondary);
+  background:var(--secondary-soft);border-radius:999px;padding:5px 12px;white-space:nowrap;}
+.secnav a:hover{background:var(--primary-soft);color:var(--primary);}
+.secnav a.active{background:var(--primary);color:#fff;}
+.secnav a.active:hover{background:var(--primary);color:#fff;}
+/* ---------- parameter section ---------- */
+.param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+@media(max-width:860px){.param-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.param-grid{grid-template-columns:1fr;}}
+.param-card{background:#FAFAFA;border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+.param-card label{display:block;font-size:11px;font-weight:700;color:var(--secondary);letter-spacing:.3px;}
+.param-card .en{font-size:10px;color:var(--disabled);margin-bottom:7px;}
+.param-card input{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-weight:600;font-family:inherit;color:var(--ink);background:#fff;}
+.param-card input:focus{outline:2px solid var(--primary-soft);border-color:var(--primary);}
+.param-card .hint{font-size:10px;color:var(--sub);margin-top:6px;line-height:1.45;}
+.param-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center;}
+.param-status{font-size:11.5px;font-weight:600;color:var(--green);}
+/* ---------- layout ---------- */
+main{max-width:980px;margin:0 auto;padding:24px clamp(10px,3vw,20px);display:flex;flex-direction:column;gap:24px;}
+/* ---------- hero ---------- */
+.hero{background:var(--card);border-radius:16px;border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden;}
+.hero .strip{height:4px;background:var(--primary);}
+.hero .inner{padding:clamp(20px,4.6vw,32px) clamp(20px,5vw,36px);text-align:center;}
+.hero img{height:34px;width:auto;}
+.hero .agency{font-size:10.5px;letter-spacing:1.5px;color:var(--sub);font-weight:600;margin-top:6px;}
+.hero h1{margin:14px 0 4px;font-size:clamp(22px,5.5vw,34px);font-weight:700;color:var(--ink);}
+.hero .sub{font-size:clamp(12px,2.4vw,15px);color:var(--sub);}
+.hero .kpis{display:flex;justify-content:center;gap:clamp(14px,4vw,36px);margin-top:22px;flex-wrap:wrap;}
+.hero .kpis .v{font-size:clamp(22px,5vw,32px);font-weight:700;}
+.hero .kpis .l{font-size:10.5px;color:var(--sub);}
+.hero .kpis .pm{font-size:11px;color:var(--sub);margin-top:7px;padding-top:6px;border-top:1px dashed var(--line);}
+.hero .kpis .pm b{color:var(--ink);font-weight:600;}
+.hero .kpis .pmd{font-size:10.5px;font-weight:700;margin-top:2px;}
+/* ---------- section card ---------- */
+section.report{background:var(--card);border-radius:16px;padding:clamp(16px,3vw,24px);
+  box-shadow:var(--shadow);border:1px solid var(--line);}
+.sec-head{margin-bottom:16px;}
+.sec-head .row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.sec-no{font-size:12px;font-weight:700;border-radius:999px;padding:3px 11px;letter-spacing:1px;}
+.sec-head h2{margin:0;font-size:clamp(16px,2.4vw,20px);font-weight:600;color:var(--ink);}
+.sec-head .en{font-size:12px;color:var(--sub);margin-top:4px;}
+/* accent variants */
+.a-primary{color:var(--primary);background:var(--primary-soft);}
+.a-blue{color:var(--blue);background:var(--blue-soft);}
+.a-maroon{color:var(--maroon);background:var(--maroon-soft);}
+.a-slate{color:var(--secondary);background:var(--secondary-soft);}
+.a-red{color:var(--red);background:var(--red-soft);}
+.a-amber{color:var(--amber);background:var(--amber-soft);}
+.a-green{color:var(--green);background:var(--green-soft);}
+/* ---------- grids ---------- */
+.grid{display:grid;gap:14px;}
+.grid-6{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+.grid-2{grid-template-columns:1.25fr 1fr;}
+.grid-2e{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+@media(max-width:860px){.grid-4{grid-template-columns:repeat(2,1fr);}.grid-6{grid-template-columns:repeat(2,1fr);}.grid-2,.grid-2e,.grid-3{grid-template-columns:1fr;}}
+@media(max-width:480px){.grid-4,.grid-6{grid-template-columns:1fr;}.profile-grid{grid-template-columns:1fr !important;}}
+/* ---------- KPI card (HCaja Kpi) ---------- */
+.kpi{background:#FAFAFA;border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0;}
+.kpi .label{font-size:11px;font-weight:600;color:var(--secondary);letter-spacing:.3px;}
+.kpi .en{font-size:10px;color:var(--disabled);margin-bottom:6px;}
+.kpi .value{font-size:clamp(18px,3vw,24px);font-weight:700;color:var(--ink);line-height:1.15;}
+.kpi .value.alert{color:var(--red);}
+.kpi .delta{font-size:11.5px;font-weight:700;margin-top:7px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;}
+.delta.up{color:var(--green);background:var(--green-soft);}
+.delta.down{color:var(--red);background:var(--red-soft);}
+.delta.flat{color:var(--sub);background:var(--secondary-soft);}
+.kpi .ctx{font-size:10.5px;color:var(--sub);margin-top:6px;}
+.spark{height:46px;margin-top:9px;position:relative;}
+/* ---------- narrative & insight ---------- */
+.narrative{background:var(--primary-soft);border:1px solid #FBCFE3;border-left:4px solid var(--primary);
+  border-radius:12px;padding:16px 20px;font-size:13.5px;line-height:1.65;color:var(--ink);}
+.narrative b{color:var(--maroon);}
+.insight{margin-top:12px;font-size:12.5px;color:var(--sub);padding-top:10px;border-top:1px dashed var(--line);line-height:1.55;}
+.insight b{color:var(--ink);}
+/* ---------- signals ---------- */
+.signals{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.signal{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.5;border-radius:10px;padding:10px 14px;border:1px solid;}
+.signal .ic{font-weight:800;flex:none;}
+.signal.warn{background:var(--amber-soft);border-color:#FDE68A;color:#92400E;}
+.signal.bad{background:var(--red-soft);border-color:#FECACA;color:#991B1B;}
+.signal.good{background:var(--green-soft);border-color:#BBF7D0;color:#166534;}
+.signal.info{background:var(--info-soft);border-color:#BFDBFE;color:#1E40AF;}
+/* ---------- chips ---------- */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;}
+.chip{font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;}
+.chip.c-bad{color:var(--red);background:var(--red-soft);}
+.chip.c-warn{color:var(--amber);background:var(--amber-soft);}
+.chip.c-good{color:var(--green);background:var(--green-soft);}
+.chip.c-navy{color:var(--blue);background:var(--blue-soft);}
+/* ---------- charts ---------- */
+.chart-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;}
+.chart-wrap{position:relative;height:280px;}
+.chart-wrap.short{height:220px;}
+.profile-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;}
+.profile-grid .profile-card{grid-column:span 2;}
+.profile-grid .profile-card:nth-child(4),
+.profile-grid .profile-card:nth-child(5){grid-column:span 3;}
+@media(max-width:860px){
+  .profile-grid{grid-template-columns:repeat(2,1fr);}
+  .profile-grid .profile-card,
+  .profile-grid .profile-card:nth-child(4),
+  .profile-grid .profile-card:nth-child(5){grid-column:auto;}
+  .profile-grid .profile-card:nth-child(5){grid-column:1 / -1;}
+}
+.profile-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;}
+.profile-card h4{font-size:11px;margin:0 0 8px;color:var(--secondary);font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
+.mini-chart{height:145px;position:relative;}
+/* ---------- tables (HCaja Th/Td) ---------- */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid var(--line);background:#fff;}
+table.data{border-collapse:collapse;width:100%;min-width:560px;font-size:13px;}
+table.data th{text-align:right;padding:10px 12px;background:var(--slate-head);color:var(--secondary);
+  font-size:11px;font-weight:700;letter-spacing:.4px;white-space:nowrap;border-bottom:1px solid var(--line);}
+table.data th:first-child, table.data th.lft{text-align:left;}
+table.data td{text-align:right;padding:9px 12px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink);white-space:nowrap;}
+table.data td:first-child, table.data td.lft{text-align:left;font-weight:600;}
+table.data tr.subhead td{background:var(--secondary-soft);color:var(--secondary);font-weight:700;}
+table.data tr.total td{background:var(--slate-head);font-weight:700;color:var(--ink);border-top:2px solid var(--line);}
+table.data td.pos{color:var(--green);font-weight:700;}
+table.data td.neg{color:var(--red);font-weight:700;}
+table.data td.best{font-weight:700;color:var(--primary);background:var(--primary-soft);}
+table.heat td.cell{font-weight:700;text-align:center;}
+.tbl-note{font-size:11px;color:var(--sub);margin-top:8px;line-height:1.5;}
+.badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--secondary-soft);color:var(--secondary);margin-left:8px;vertical-align:2px;}
+h3.sub-h3{font-size:14px;color:var(--ink);font-weight:600;margin:24px 0 12px;padding-top:16px;border-top:1px solid var(--line);}
+h3.sub-h3 .en3{font-size:11px;color:var(--sub);font-weight:400;margin-left:8px;}
+.def-list{font-size:12.5px;color:var(--ink);line-height:1.65;margin:0;padding-left:18px;}
+.def-list b{color:var(--secondary);}
+.side-card{background:#FAFAFA;border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+.side-card h4{font-size:11px;margin:0 0 8px;color:var(--secondary);font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
+/* takeaway */
+.takeaway-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:860px){.takeaway-list{grid-template-columns:1fr;}}
+.takeaway-list li{background:#FAFAFA;border:1px solid var(--line);border-left:4px solid var(--primary);
+  border-radius:12px;padding:16px 18px;font-size:13px;line-height:1.55;display:flex;gap:12px;align-items:flex-start;}
+.takeaway-list .num{font-size:12px;font-weight:700;color:var(--primary);background:var(--primary-soft);
+  border-radius:999px;padding:3px 10px;flex:none;letter-spacing:1px;}
+.scope-note{font-size:11.5px;color:var(--sub);background:var(--slate-head);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-top:14px;line-height:1.55;}
+footer{text-align:center;padding:8px 16px 0;font-size:11px;color:var(--disabled);line-height:1.6;}
+/* print */
+@media print{
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+  .no-print{display:none !important;}
+  body{padding-bottom:0;}
+  section.report,.hero{box-shadow:none !important;break-inside:avoid;page-break-inside:avoid;margin-bottom:12px;}
+  @page{margin:10mm;size:A4;}
+}
+</style>
+</head>
+<body>
+
+<!-- sticky control bar -->
+<div class="ctrlbar no-print">
+  <img id="logoTop" alt="HCaja">
+  <div class="ttl">
+    Monthly Workforce Auto-Report
+    <div class="meta" id="ctrlMeta">HCaja Data Pipeline · Summary_History + Turnover_History + Demografi</div>
+  </div>
+  <label>Periode:
+    <select id="monthSelect"></select>
+  </label>
+  <button class="btn primary" id="exportBtn" onclick="exportPDF()">⬇ PDF Report</button>
+  <button class="btn secondary" onclick="window.print()">🖨 Print</button>
+</div>
+<div class="secnav no-print" id="secNav">
+  <a href="#exec">01 Ringkasan</a>
+  <a href="#compare">02 Perbandingan</a>
+  <a href="#tab">03 TAB</a>
+  <a href="#asl">04 ASL</a>
+  <a href="#dms">05 DMS</a>
+  <a href="#status">06 Status &amp; KJ</a>
+  <a href="#terminasi">07 Terminasi</a>
+  <a href="#takeaway">08 Takeaway</a>
+  <a href="#appendix">09 Appendix</a>
+  <a href="#param">10 Parameter</a>
+</div>
+
+<main>
+
+<!-- HERO / COVER — flat card per HCaja Design System -->
+<div class="hero print-hero">
+  <div class="strip"></div>
+  <div class="inner">
+    <img id="logoHero" alt="HCaja">
+    <div class="agency">HCIS · PT TRI ADI BERSAMA (ANTERAJA)</div>
+    <h1>Laporan Workforce Bulanan</h1>
+    <div class="sub">Monthly Workforce Report — <span id="heroPeriod"></span></div>
+    <div class="kpis" id="heroKpis"></div>
+  </div>
+</div>
+
+<section class="report" id="exec">
+  <div class="sec-head">
+    <div class="row"><span class="sec-no a-primary">01</span><h2>Ringkasan Eksekutif — All Company</h2></div>
+    <div class="en">Executive Summary — group-level snapshot &amp; signals of the month</div>
+  </div>
+  <div class="signals" id="execSignals"></div>
+  <div class="grid grid-4" id="kpiCards"></div>
+  <div class="narrative" id="execNarrative" style="margin-top:14px;"></div>
+  <div class="grid grid-2" style="margin-top:16px;">
+    <div class="chart-card"><div class="chart-wrap"><canvas id="companyShareChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-wrap"><canvas id="turnoverTrendChart"></canvas></div></div>
+  </div>
+  <div class="chart-card" style="margin-top:14px;"><div class="chart-wrap"><canvas id="netMovementChart"></canvas></div></div>
+  <div class="insight" id="allCompanyInsight"></div>
+</section>
+
+<section class="report" id="compare">
+  <div class="sec-head">
+    <div class="row"><span class="sec-no a-blue">02</span><h2>Perbandingan Perusahaan</h2></div>
+    <div class="en">Company Comparison — TAB vs ASL vs DMS, apple-to-apple</div>
+  </div>
+  <div class="tbl-wrap"><table class="data compare" id="compareTable"></table></div>
+  <div class="tbl-note">Sel magenta menandai nilai tertinggi antar company pada baris tersebut; angka merah menandai turnover di atas target. / Magenta cells mark the row's highest value; red numbers mark turnover above target.</div>
+  <div class="grid grid-2e" style="margin-top:16px;">
+    <div class="chart-card"><div class="chart-wrap"><canvas id="cmpTurnoverRateChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-wrap"><canvas id="cmpIndexChart"></canvas></div></div>
+  </div>
+  <div class="insight" id="cmpInsight"></div>
+  <h3 class="sub-h3">Karakteristik Utama per Perusahaan <span class="en3">/ Key Characteristics by Company</span></h3>
+  <div class="grid grid-3" id="cmpTraitCards"></div>
+</section>
+
+<section class="report" id="tab">
+  <div class="sec-head">
+    <div class="row"><span class="sec-no a-primary">03</span><h2>TAB — PT Tri Adi Bersama</h2></div>
+    <div class="en">Group backbone — large-scale last-mile &amp; regional operations</div>
+  </div>
+  <div class="chips" id="tab_chips"></div>
+  <div class="grid grid-6" id="tab_kpi"></div>
+  <div class="narrative" id="tab_narrative" style="margin-top:14px;"></div>
+  <div class="grid grid-2" style="margin-top:16px;">
+    <div class="chart-card"><div class="chart-wrap"><canvas id="tab_growthChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-wrap"><canvas id="tab_turnoverChart"></canvas></div></div>
+  </div>
+  <div class="insight" id="tab_trendInsight"></div>
+  <h3 class="sub-h3">Profil Tenaga Kerja <span class="en3">/ Workforce Profile</span></h3>
+  <div class="profile-grid" id="tab_profileGrid"></div>
+  <h3 class="sub-h3">Struktur Organisasi <span class="en3">/ Organization Structure</span></h3>
+  <div class="grid grid-2e">
+    <div class="chart-card" style="grid-column:1 / -1;"><div class="chart-wrap"><canvas id="tab_levelChart"></canvas></div></div>
+  </div>
+  <div class="grid grid-2e" style="margin-top:14px;">
+    <div class="chart-card"><div class="chart-wrap" style="height:300px;"><canvas id="tab_deptChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-wrap" style="height:300px;"><canvas id="tab_jabatanChart"></canvas></div></div>
+  </div>
+  <div class="insight" id="tab_orgInsight"></div>
+  <h3 class="sub-h3">Sebaran Region <span class="en3">/ Regional Distribution</span></h3>
+  <div class="chart-card"><div class="chart-wrap" style="height:280px;"><canvas id="tab_regionChart"></canvas></div></div>
+</section>
+
+<section class="report" id="asl">
+  <div class="sec-head">
+    <div class="row"><span class="sec-no a-blue">04</span><h2>ASL — PT Adi Sarana Logistik</h2></div>
+    <div class="en">E-fulfillment &amp; warehouse unit — smaller scale, specific operations</div>
+  </div>
+  <div class="chips" id="asl_chips"></div>
+  <div class="grid grid-6" id="asl_kpi"></div>
+  <div class="narrative" id="asl_narrative" style="margin-top:14px;"></div>
+  <div class="grid grid-2" style="margin-top:16px;">
+    <div class="chart-card"><div class="chart-wrap"><canvas id="asl_growthChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-wrap"><canvas id="asl_turnoverChart"></canvas></div></div>
+  </div>
+  <div class="insight" id="asl_trendInsight"></div>
+  <h3 class="sub-h3">Profil Tenaga Kerja <span class="en3">/ Workforce Profile</span></h3>
+  <div class="profile-grid" id="asl_profileGrid"></div>
+  <h3 class="sub-h3">Struktur Organisasi <span class="en3">/ Organization Structure</span></h3>
+  <div class="grid grid-2e">
+    <div class="chart-card" style="grid-column:1 / -1;"><div class="chart-wrap"><canvas id="asl_levelChart"></canvas></div></div>
+  </div>
+  <div class="grid grid-2e" style="margin-top:14px;">
+    <div class="chart-card"><div class="chart-wrap" style="height:300px;"><canvas id="asl_deptChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-wrap" style="height:300px;"><canvas id="asl_jabatanChart"></canvas></div></div>
+  </div>
+  <div class="insight" id="asl_orgInsight"></div>
+  <h3 class="sub-h3">Sebaran Region <span class="en3">/ Regional Distribution</span></h3>
+  <div class="chart-card"><div class="chart-wrap" style="height:280px;"><canvas id="asl_regionChart"></canvas></div></div>
+</section>
+
+<section class="report" id="dms">
+  <div class="sec-head">
+    <div class="row"><span class="sec-no a-maroon">05</span><h2>DMS — PT Duta Mitra Solusindo</h2></div>
+    <div class="en">Smallest unit in the group — most concentrated workforce profile</div>
+  </div>
+  <div class="chips" id="dms_chips"></div>
+  <div class="grid grid-6" id="dms_kpi"></div>
+  <div class="narrative" id="dms_narrative" style="margin-top:14px;"></div>
+  <div class="grid grid-2" style="margin-top:16px;">
+    <div class="chart-card"><div class="chart-wrap"><canvas id="dms_growthChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-wrap"><canvas id="dms_turnoverChart"></canvas></div></div>
+  </div>
+  <div class="insight" id="dms_trendInsight"></div>
+  <h3 class="sub-h3">Profil Tenaga Kerja <span class="en3">/ Workforce Profile</span></h3>
+  <div class="profile-grid" id="dms_profileGrid"></div>
+  <h3 class="sub-h3">Struktur Organisasi <span class="en3">/ Organization Structure</span></h3>
+  <div class="grid grid-2e">
+    <div class="chart-card" style="grid-column:1 / -1;"><div class="chart-wrap"><canvas id="dms_levelChart"></canvas></div></div>
+  </div>
+  <div class="grid grid-2e" style="margin-top:14px;">
+    <div class="chart-card"><div class="chart-wrap" style="height:300px;"><canvas id="dms_deptChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-wrap" style="height:300px;"><canvas id="dms_jabatanChart"></canvas></div></div>
+  </div>
+  <div class="insight" id="dms_orgInsight"></div>
+  <h3 class="sub-h3">Sebaran Region <span class="en3">/ Regional Distribution</span></h3>
+  <div class="chart-card"><div class="chart-wrap" style="height:280px;"><canvas id="dms_regionChart"></canvas></div></div>
+</section>
+
+<section class="report" id="status">
+  <div class="sec-head">
+    <div class="row"><span class="sec-no a-slate">06</span><h2>Status Pegawai &amp; Kelompok Jabatan</h2></div>
+    <div class="en">Employment Status &amp; Job Groups — Tetap / Kontrak / Mitra composition, KJ, Outsource &amp; Intern</div>
+  </div>
+  <div class="grid grid-2e">
+    <div class="chart-card"><div class="chart-wrap"><canvas id="statusMixChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-wrap"><canvas id="kjChart"></canvas></div></div>
+  </div>
+  <div class="insight" id="statusInsight"></div>
+  <h3 class="sub-h3">Summary Karyawan All PT by Status Pegawai <span class="en3">/ Headcount by Employment Status</span></h3>
+  <div class="tbl-wrap"><table class="data" id="statusTable"></table></div>
+  <div class="tbl-note">Baris "Selisih" = perubahan bulan-ke-bulan (MoM). Kategori Trainee bernilai 0 sepanjang periode sehingga tidak ditampilkan. / "Selisih" rows show month-on-month change; Trainee is 0 across the period.</div>
+  <h3 class="sub-h3">Kelompok Jabatan — Karyawan Organik All PT <span class="en3">/ Job Groups, organic employees</span></h3>
+  <div class="grid grid-2">
+    <div class="tbl-wrap"><table class="data" id="kjTable"></table></div>
+    <div class="side-card">
+      <h4>Definisi Kelompok Jabatan</h4>
+      <ul class="def-list" id="kjDefList"></ul>
+    </div>
+  </div>
+  <h3 class="sub-h3">Outsource &amp; Intern <span class="badge" id="outsourceBadge"></span></h3>
+  <div class="grid grid-2e">
+    <div class="tbl-wrap"><table class="data" id="outsourceSummaryTable"></table></div>
+    <div class="tbl-wrap"><table class="data" id="outsourceDetailTable"></table></div>
+  </div>
+  <div class="tbl-note">Data Outsource &amp; Intern tersedia untuk bulan Juni 2026 (snapshot laporan demografi manual). Populasi ini di luar headcount Organik/Mitra pada section lain.</div>
+</section>
+
+<section class="report" id="terminasi">
+  <div class="sec-head">
+    <div class="row"><span class="sec-no a-red">07</span><h2>Terminasi &amp; Turnover</h2></div>
+    <div class="en">Terminations &amp; Turnover — who, where, and why (incl. Organik vs Mitra split)</div>
+  </div>
+  <div class="signals" id="termSignals"></div>
+  <div class="grid grid-2e">
+    <div class="chart-card"><div class="chart-wrap"><canvas id="termByCompanyChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-wrap"><canvas id="reasonTrendChart"></canvas></div></div>
+  </div>
+  <div class="insight" id="termInsight"></div>
+  <h3 class="sub-h3">Heatmap Terminasi — Region × Bulan <span class="en3">/ Termination heatmap by region &amp; month</span></h3>
+  <div class="tbl-wrap"><table class="data heat" id="termHeatmap"></table></div>
+  <div class="tbl-note">Semakin pekat warna magenta, semakin tinggi jumlah terminasi. Kolom total menghitung akumulasi Jan–Jun 2026.</div>
+  <h3 class="sub-h3">Terminasi Karyawan Organik <span class="badge" id="termOrganikBadge"></span></h3>
+  <div class="grid grid-2e">
+    <div class="tbl-wrap"><table class="data" id="termOrgKategoriTable"></table></div>
+    <div class="tbl-wrap"><table class="data" id="termOrgAlasanTable"></table></div>
+  </div>
+  <div class="tbl-note">Sumber: laporan demografi manual (snapshot Juni 2026). Denominator turnover organik = karyawan aktif + resign pada periode 2 Juni – 1 Juli 2026. Alasan dengan nilai 0 tidak ditampilkan.</div>
+</section>
+
+<section class="report" id="takeaway">
+  <div class="sec-head">
+    <div class="row"><span class="sec-no a-green">08</span><h2>Executive Takeaway</h2></div>
+    <div class="en">Cross-group summary for Head of HC, Directors &amp; BOD</div>
+  </div>
+  <ul class="takeaway-list" id="takeawayList"></ul>
+  <div class="scope-note">Catatan cakupan data: breakdown Departemen &amp; Jabatan bersumber dari file demografi karyawan per Juni 2026. Alasan terminasi bulanan (Top Reason) tersedia di level grup; pemisahan Organik vs Mitra mengikuti snapshot laporan manual Juni 2026. Detail metodologi ada di section 09 Appendix.</div>
+</section>
+
+<section class="report" id="appendix">
+  <div class="sec-head">
+    <div class="row"><span class="sec-no a-amber">09</span><h2>Appendix — Data Referensi &amp; Metodologi</h2></div>
+    <div class="en">Reference tables &amp; methodology — DL-IDL-OPEX, KJ per company, definitions</div>
+  </div>
+  <h3 class="sub-h3" style="margin-top:0;border-top:none;padding-top:0;">DL – IDL – OPEX <span class="en3">/ Cost Classification</span></h3>
+  <div class="tbl-wrap"><table class="data" id="dlidlTable"></table></div>
+  <div class="grid grid-2e" style="margin-top:14px;">
+    <div class="side-card">
+      <h4>Definisi Kelompok Biaya</h4>
+      <ul class="def-list" id="dlidlDefList"></ul>
+    </div>
+    <div class="side-card">
+      <h4>Pengelompokan Jabatan SATRIA &amp; SORTER</h4>
+      <ul class="def-list">
+        <li><b>SATRIA</b> — Jab. Satria, Satria SDS, Satria Project, Satria Project B2B.</li>
+        <li><b>SORTER</b> — Sorter Hub, Sorter Staging, Sorter LH, Sorter Gateway.</li>
+      </ul>
+    </div>
+  </div>
+  <h3 class="sub-h3">Kelompok Jabatan Organik per Company <span class="en3">/ Job groups by company</span></h3>
+  <div class="tbl-wrap"><table class="data" id="kjCompanyTable"></table></div>
+  <h3 class="sub-h3">Metodologi &amp; Rekonsiliasi Data <span class="en3">/ Methodology &amp; data reconciliation</span></h3>
+  <div class="side-card">
+    <ul class="def-list">
+      <li><b>Turnover rate bulanan</b> = Total Terminasi bulan berjalan ÷ Headcount akhir bulan × 100%. Definisi ini konsisten di seluruh report; jika kebijakan HC beralih ke <i>average headcount</i> ((awal+akhir)/2), seluruh angka dapat dihitung ulang dari data yang sama.</li>
+      <li><b>Target turnover</b> mengacu pada threshold kesepakatan HC sebesar <span id="metaTarget"></span>% per bulan.</li>
+      <li><b>Rekonsiliasi headcount</b> — Angka headcount per company dihitung dari data demografi per karyawan (konsisten dengan laporan demografi manual, mis. Grand Total Jan-26 = 11.348). Delapan record dengan region "CEK ULANG" pada Januari termasuk dalam total dan ditandai sebagai isu data quality region, bukan pengurang headcount.</li>
+      <li><b>Organik</b> = Status Tetap + Kontrak. <b>Trainee</b> bernilai 0 di seluruh periode Jan–Jun 2026.</li>
+      <li><b>Top Reason terminasi bulanan</b> merekam 3 alasan teratas per bulan di level grup, sehingga tren per alasan hanya mencerminkan bulan di mana alasan tersebut masuk top-3.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  HCaja Monthly Workforce Report · HCIS — PT Tri Adi Bersama (Anteraja) · Dibuat otomatis dari HCaja Data Pipeline + migrasi laporan Demografi manual<br>
+  HCaja Design System v1.0 — enterprise, flat, light UI
+</footer>
+
+<section class="report" id="param">
+  <div class="sec-head">
+    <div class="row"><span class="sec-no a-blue">10</span><h2>Parameter &amp; Rumusan</h2></div>
+    <div class="en">Editable parameters &amp; thresholds — adjust anytime, all sections re-calculate instantly</div>
+  </div>
+  <div class="param-grid" id="paramGrid"></div>
+  <div class="param-actions no-print">
+    <button class="btn primary" onclick="applyParams()">&#10003; Terapkan Parameter</button>
+    <button class="btn secondary" onclick="resetParams()">&#8634; Reset Default</button>
+    <span class="param-status" id="paramStatus"></span>
+  </div>
+  <div class="tbl-note" style="margin-top:12px;">Perubahan parameter langsung menghitung ulang seluruh KPI, chart, chip, signal, dan narasi di semua section. Nilai tersimpan di browser (localStorage) sehingga tetap berlaku saat halaman dibuka kembali. / Parameter changes recalculate all KPIs, charts, chips, signals, and narratives across sections. Values persist in browser localStorage.</div>
+</section>
+
+</main>
+<script>
+const LOGO_HCAJA = "data:image/png;base64,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";
+const DATA = {"summary": [{"Month": "Jan-26", "MonthNum": 1, "TotalHeadcount": 11340, "Organik": 1499, "Mitra": 9841, "TAB": 10866, "ASL": 271, "DMS": 203, "Hiring": 338}, {"Month": "Feb-26", "MonthNum": 2, "TotalHeadcount": 11334, "Organik": 1514, "Mitra": 9820, "TAB": 10828, "ASL": 287, "DMS": 219, "Hiring": 339}, {"Month": "Mar-26", "MonthNum": 3, "TotalHeadcount": 11398, "Organik": 1528, "Mitra": 9870, "TAB": 10888, "ASL": 280, "DMS": 230, "Hiring": 384}, {"Month": "Apr-26", "MonthNum": 4, "TotalHeadcount": 11494, "Organik": 1525, "Mitra": 9969, "TAB": 10947, "ASL": 306, "DMS": 241, "Hiring": 572}, {"Month": "Mei-26", "MonthNum": 5, "TotalHeadcount": 11449, "Organik": 1523, "Mitra": 9926, "TAB": 10915, "ASL": 292, "DMS": 242, "Hiring": 373}, {"Month": "Jun-26", "MonthNum": 6, "TotalHeadcount": 11569, "Organik": 1531, "Mitra": 10038, "TAB": 11047, "ASL": 281, "DMS": 241, "Hiring": 515}], "profile": [{"Month": "Jan-26", "MonthNum": 1, "Gender": {"MALE": 10969, "FEMALE": 371}, "AgeCat": {"31-40": 4548, "25-30": 4010, "<25": 1659, ">40": 1123}, "Marital": {"MARRIED": 6386, "SINGLE": 4954}, "Education": {"SMA/MA": 9830, "S1": 1096, "DIPLOMA": 287, "PROFESI": 106, "S2": 21}, "Tenure": {"> 3 Tahun": 4366, "> 12 Bulan - 2 Tahun": 2171, "\u2264 6 Bulan": 2125, "> 2 Tahun - 3 Tahun": 1475, "> 6 - 12 Bulan": 1203}, "Level": {"ADMIN": 9891, "LEADER": 735, "STAFF": 291, "COORDINATOR": 146, "SECT HEAD": 107, "SUPERVISOR": 84, "DEPT HEAD": 65, "AVP": 11, "VP": 6, "SVP": 3, "DIR": 1}, "Region": {"JABODETABEK": 5663, "JATIM BALI NUSRA": 1952, "JATENG DIY": 1300, "JABAR": 1101, "SUMATERA": 539, "HEAD OFFICE": 471, "KALSULAMPAPUA": 306, "CEK ULANG": 8}}, {"Month": "Feb-26", "MonthNum": 2, "Gender": {"MALE": 10960, "FEMALE": 374}, "AgeCat": {"31-40": 4586, "25-30": 3977, "<25": 1630, ">40": 1141}, "Marital": {"MARRIED": 6375, "SINGLE": 4959}, "Education": {"SMA/MA": 9837, "S1": 1093, "DIPLOMA": 286, "PROFESI": 97, "S2": 21}, "Tenure": {"> 3 Tahun": 4348, "> 12 Bulan - 2 Tahun": 2167, "\u2264 6 Bulan": 1868, "> 2 Tahun - 3 Tahun": 1558, "> 6 - 12 Bulan": 1393}, "Level": {"ADMIN": 9872, "LEADER": 744, "STAFF": 293, "COORDINATOR": 147, "SECT HEAD": 109, "SUPERVISOR": 84, "DEPT HEAD": 64, "AVP": 11, "VP": 6, "SVP": 3, "DIR": 1}, "Region": {"JABODETABEK": 5663, "JATIM BALI NUSRA": 1945, "JATENG DIY": 1298, "JABAR": 1114, "SUMATERA": 535, "HEAD OFFICE": 475, "KALSULAMPAPUA": 304}}, {"Month": "Mar-26", "MonthNum": 3, "Gender": {"MALE": 11015, "FEMALE": 383}, "AgeCat": {"31-40": 4633, "25-30": 3989, "<25": 1589, ">40": 1187}, "Marital": {"MARRIED": 6411, "SINGLE": 4987}, "Education": {"SMA/MA": 9872, "S1": 1111, "DIPLOMA": 294, "PROFESI": 99, "S2": 22}, "Tenure": {"> 3 Tahun": 4717, "> 12 Bulan - 2 Tahun": 2026, "\u2264 6 Bulan": 1831, "> 6 - 12 Bulan": 1506, "> 2 Tahun - 3 Tahun": 1318}, "Level": {"ADMIN": 9922, "LEADER": 752, "STAFF": 296, "COORDINATOR": 147, "SECT HEAD": 109, "SUPERVISOR": 87, "DEPT HEAD": 64, "AVP": 11, "VP": 6, "SVP": 3, "DIR": 1}, "Region": {"JABODETABEK": 5742, "JATIM BALI NUSRA": 1910, "JATENG DIY": 1307, "JABAR": 1102, "SUMATERA": 545, "HEAD OFFICE": 479, "KALSULAMPAPUA": 313}}, {"Month": "Apr-26", "MonthNum": 4, "Gender": {"MALE": 11098, "FEMALE": 396}, "AgeCat": {"31-40": 4679, "25-30": 3993, "<25": 1598, ">40": 1224}, "Marital": {"MARRIED": 6463, "SINGLE": 5031}, "Education": {"SMA/MA": 9947, "S1": 1120, "DIPLOMA": 302, "PROFESI": 101, "S2": 24}, "Tenure": {"> 3 Tahun": 4722, "> 12 Bulan - 2 Tahun": 1895, "\u2264 6 Bulan": 1892, "> 6 - 12 Bulan": 1589, "> 2 Tahun - 3 Tahun": 1396}, "Level": {"ADMIN": 10024, "LEADER": 745, "STAFF": 298, "COORDINATOR": 144, "SECT HEAD": 109, "SUPERVISOR": 86, "DEPT HEAD": 67, "AVP": 11, "VP": 6, "SVP": 3, "DIR": 1}, "Region": {"JABODETABEK": 5794, "JATIM BALI NUSRA": 1926, "JATENG DIY": 1316, "JABAR": 1100, "SUMATERA": 547, "HEAD OFFICE": 482, "KALSULAMPAPUA": 329}}, {"Month": "Mei-26", "MonthNum": 5, "Gender": {"MALE": 11062, "FEMALE": 387}, "AgeCat": {"31-40": 4672, "25-30": 3932, "<25": 1594, ">40": 1251}, "Marital": {"MARRIED": 6433, "SINGLE": 5016}, "Education": {"SMA/MA": 9917, "S1": 1112, "DIPLOMA": 297, "PROFESI": 99, "S2": 24}, "Tenure": {"> 3 Tahun": 4732, "> 12 Bulan - 2 Tahun": 1881, "\u2264 6 Bulan": 1818, "> 6 - 12 Bulan": 1545, "> 2 Tahun - 3 Tahun": 1473}, "Level": {"ADMIN": 9980, "LEADER": 749, "STAFF": 293, "COORDINATOR": 145, "SECT HEAD": 108, "SUPERVISOR": 86, "DEPT HEAD": 67, "AVP": 11, "VP": 6, "SVP": 3, "DIR": 1}, "Region": {"JABODETABEK": 5731, "JATIM BALI NUSRA": 1924, "JATENG DIY": 1333, "JABAR": 1102, "SUMATERA": 546, "HEAD OFFICE": 479, "KALSULAMPAPUA": 334}}, {"Month": "Jun-26", "MonthNum": 6, "Gender": {"MALE": 11176, "FEMALE": 393}, "AgeCat": {"31-40": 4742, "25-30": 3968, "<25": 1601, ">40": 1258}, "Marital": {"MARRIED": 6505, "SINGLE": 5064}, "Education": {"SMA/MA": 10009, "S1": 1132, "DIPLOMA": 301, "PROFESI": 102, "S2": 25}, "Tenure": {"> 3 Tahun": 4683, "\u2264 6 Bulan": 1997, "> 12 Bulan - 2 Tahun": 1830, "> 2 Tahun - 3 Tahun": 1552, "> 6 - 12 Bulan": 1507}, "Level": {"ADMIN": 10091, "LEADER": 751, "STAFF": 303, "COORDINATOR": 142, "SECT HEAD": 107, "SUPERVISOR": 87, "DEPT HEAD": 67, "AVP": 11, "VP": 6, "SVP": 3, "DIR": 1}, "Region": {"JABODETABEK": 5812, "JATIM BALI NUSRA": 1925, "JATENG DIY": 1330, "JABAR": 1102, "SUMATERA": 556, "HEAD OFFICE": 489, "KALSULAMPAPUA": 355}}], "turnover": [{"Month": "Jan-26", "MonthNum": 1, "Termination": 392, "TopReason": {"Mangkir": 142, "Permintaan Sendiri": 79, "Cancel Join": 48}, "ByRegion": {"JABODETABEK": 209, "JATENG DIY": 48, "SUMATERA": 40, "JATIM BALI NUSRA": 39, "JABAR": 29, "KALSULAMPAPUA": 25, "HEAD OFFICE": 2}, "ByCompany": {"TAB": 352, "ASL": 38, "DMS": 2}}, {"Month": "Feb-26", "MonthNum": 2, "Termination": 422, "TopReason": {"Mangkir": 151, "Permintaan Sendiri": 81, "Cancel Join": 50}, "ByRegion": {"JABODETABEK": 220, "JATENG DIY": 62, "JATIM BALI NUSRA": 45, "JABAR": 35, "SUMATERA": 31, "KALSULAMPAPUA": 28, "HEAD OFFICE": 1}, "ByCompany": {"TAB": 397, "ASL": 24, "DMS": 1}}, {"Month": "Mar-26", "MonthNum": 3, "Termination": 553, "TopReason": {"Mangkir": 192, "Cancel Join": 121, "Permintaan Sendiri": 100}, "ByRegion": {"JABODETABEK": 324, "JATIM BALI NUSRA": 71, "JATENG DIY": 61, "JABAR": 38, "SUMATERA": 36, "KALSULAMPAPUA": 23}, "ByCompany": {"TAB": 506, "ASL": 43, "DMS": 4}}, {"Month": "Apr-26", "MonthNum": 4, "Termination": 594, "TopReason": {"Mangkir": 232, "Cancel Join": 116, "Permintaan Sendiri": 102}, "ByRegion": {"JABODETABEK": 337, "JATENG DIY": 78, "JATIM BALI NUSRA": 60, "SUMATERA": 49, "JABAR": 42, "KALSULAMPAPUA": 25, "HEAD OFFICE": 3}, "ByCompany": {"TAB": 559, "ASL": 30, "DMS": 5}}, {"Month": "Mei-26", "MonthNum": 5, "Termination": 532, "TopReason": {"Mangkir": 209, "Permintaan Sendiri": 99, "Cancel Join": 89}, "ByRegion": {"JABODETABEK": 313, "JATIM BALI NUSRA": 55, "JATENG DIY": 47, "KALSULAMPAPUA": 42, "SUMATERA": 37, "JABAR": 35, "HEAD OFFICE": 3}, "ByCompany": {"TAB": 508, "ASL": 22, "DMS": 2}}, {"Month": "Jun-26", "MonthNum": 6, "Termination": 426, "TopReason": {"Mangkir": 112, "Cancel Join": 99, "Phk-Fraud": 75}, "ByRegion": {"JABODETABEK": 243, "JATENG DIY": 60, "JATIM BALI NUSRA": 41, "SUMATERA": 32, "JABAR": 27, "KALSULAMPAPUA": 19, "HEAD OFFICE": 4}, "ByCompany": {"TAB": 408, "ASL": 14, "DMS": 4}}]};
+const COMPANY_PROFILE = {"TAB":[{"Month":"Jan-26","MonthNum":1,"Headcount":10868,"Gender":{"MALE":10578,"FEMALE":290},"AgeCat":{"31-40":4382,"25-30":3827,"<25":1556,">40":1103},"Marital":{"MARRIED":6213,"SINGLE":4655},"StatusOM":{"MITRA":9604,"ORGANIK":1264},"Education":{"SMA/MA":9456,"S1":1024,"DIPLOMA":262,"PROFESI":106,"S2":20},"Tenure":{"> 3 Tahun":4264,"> 12 Bulan - 2 Tahun":2164,"≤ 6 Bulan":1888,"> 2 Tahun - 3 Tahun":1414,"> 6 - 12 Bulan":1138},"Level":{"ADMIN":9606,"LEADER":577,"STAFF":284,"COORDINATOR":132,"SECT HEAD":107,"SUPERVISOR":78,"DEPT HEAD":63,"AVP":11,"VP":6,"SVP":3,"DIR":1},"Region":{"JABODETABEK":5314,"JATIM BALI NUSRA":1914,"JATENG DIY":1276,"JABAR":1089,"SUMATERA":519,"HEAD OFFICE":461,"KALSULAMPAPUA":295},"Divisi":{"OPERATION":10382,"FINANCE":70,"IT PRODUCT MANAGEMENT & TECHNOLOGY INNOVATION":65,"IT DEVELOPMENT":62,"SALES, GROWTH & CUSTOMER EXPERIENCE":59,"WAREHOUSE AND FULFILLMENT SERVICES":57,"LAINNYA":172},"Departemen":{"REGION JABODETABEK-KALBAR OPERATION":4373,"REGION JATIM BALI NUSRA - KALSULAM OPERATION":2151,"REGION JATENG DIY OPERATION":1265,"REGION JABAR OPERATION":1082,"OPERATION SPECIAL SERVICE":823,"REGION SUMATERA OPERATION":514,"TRANSPORT OPERATION":79,"WAREHOUSE & FULFILLMENT SERVICES":55,"LAINNYA":504},"Jabatan":{"SATRIA":6799,"SORTER HUB":662,"SATRIA PROJECT":636,"SATRIA SDS":621,"STAGING STORE LEADER":495,"SORTER STAGING":279,"SORTER LH":128,"SORTER GATEWAY":113,"LAINNYA":1135}},{"Month":"Feb-26","MonthNum":2,"Headcount":10828,"Gender":{"MALE":10537,"FEMALE":291},"AgeCat":{"31-40":4412,"25-30":3789,"<25":1513,">40":1114},"Marital":{"MARRIED":6188,"SINGLE":4640},"StatusOM":{"MITRA":9567,"ORGANIK":1261},"Education":{"SMA/MA":9435,"S1":1018,"DIPLOMA":258,"PROFESI":97,"S2":20},"Tenure":{"> 3 Tahun":4269,"> 12 Bulan - 2 Tahun":2126,"≤ 6 Bulan":1588,"> 2 Tahun - 3 Tahun":1512,"> 6 - 12 Bulan":1333},"Level":{"ADMIN":9569,"LEADER":571,"STAFF":286,"COORDINATOR":133,"SECT HEAD":108,"SUPERVISOR":78,"DEPT HEAD":62,"AVP":11,"VP":6,"SVP":3,"DIR":1},"Region":{"JABODETABEK":5289,"JATIM BALI NUSRA":1895,"JATENG DIY":1271,"JABAR":1102,"SUMATERA":514,"HEAD OFFICE":464,"KALSULAMPAPUA":293},"Divisi":{"OPERATION":10340,"FINANCE":70,"IT PRODUCT MANAGEMENT & TECHNOLOGY INNOVATION":65,"IT DEVELOPMENT":62,"SALES, GROWTH & CUSTOMER EXPERIENCE":61,"WAREHOUSE AND FULFILLMENT SERVICES":57,"LAINNYA":172},"Departemen":{"REGION JABODETABEK-KALBAR OPERATION":4348,"REGION JATIM BALI NUSRA - KALSULAM OPERATION":2130,"REGION JATENG DIY OPERATION":1260,"REGION JABAR OPERATION":1095,"OPERATION SPECIAL SERVICE":824,"REGION SUMATERA OPERATION":509,"TRANSPORT OPERATION":78,"WAREHOUSE & FULFILLMENT SERVICES":55,"LAINNYA":507},"Jabatan":{"SATRIA":6776,"SORTER HUB":663,"SATRIA PROJECT":626,"SATRIA SDS":620,"STAGING STORE LEADER":489,"SORTER STAGING":280,"SORTER LH":127,"SORTER GATEWAY":113,"LAINNYA":1134}},{"Month":"Mar-26","MonthNum":3,"Headcount":10890,"Gender":{"MALE":10594,"FEMALE":296},"AgeCat":{"31-40":4431,"25-30":3812,"<25":1517,">40":1130},"Marital":{"MARRIED":6226,"SINGLE":4664},"StatusOM":{"MITRA":9622,"ORGANIK":1268},"Education":{"SMA/MA":9473,"S1":1032,"DIPLOMA":265,"PROFESI":99,"S2":21},"Tenure":{"> 3 Tahun":4219,"> 12 Bulan - 2 Tahun":2067,"≤ 6 Bulan":1818,"> 2 Tahun - 3 Tahun":1495,"> 6 - 12 Bulan":1291},"Level":{"ADMIN":9623,"LEADER":572,"STAFF":290,"COORDINATOR":134,"SECT HEAD":108,"SUPERVISOR":80,"DEPT HEAD":62,"AVP":11,"VP":6,"SVP":3,"DIR":1},"Region":{"JABODETABEK":5366,"JATIM BALI NUSRA":1860,"JATENG DIY":1279,"JABAR":1090,"SUMATERA":524,"HEAD OFFICE":469,"KALSULAMPAPUA":302},"Divisi":{"OPERATION":10397,"FINANCE":71,"IT PRODUCT MANAGEMENT & TECHNOLOGY INNOVATION":65,"IT DEVELOPMENT":64,"SALES, GROWTH & CUSTOMER EXPERIENCE":63,"WAREHOUSE AND FULFILLMENT SERVICES":57,"LAINNYA":172},"Departemen":{"FIRST & LAST MILE JABODETABEK-KALBAR OPERATION":4731,"REGION JATIM BALI NUSRA - KALSULAM OPERATION":2087,"REGION JATENG DIY OPERATION":1243,"REGION JABAR OPERATION":1075,"REGION SUMATERA OPERATION":511,"MID MILE JABODETABEK-KALBAR OPERATION":484,"TRANSPORT OPERATION":186,"WAREHOUSE & FULFILLMENT SERVICES":55,"LAINNYA":496},"Jabatan":{"SATRIA":6783,"SATRIA SDS":691,"SORTER HUB":658,"SATRIA PROJECT":614,"STAGING STORE LEADER":493,"SORTER STAGING":280,"SORTER LH":128,"SORTER GATEWAY":113,"LAINNYA":1130}},{"Month":"Apr-26","MonthNum":4,"Headcount":10951,"Gender":{"MALE":10649,"FEMALE":302},"AgeCat":{"31-40":4434,"25-30":3831,"<25":1544,">40":1142},"Marital":{"MARRIED":6264,"SINGLE":4687},"StatusOM":{"MITRA":9696,"ORGANIK":1255},"Education":{"SMA/MA":9519,"S1":1035,"DIPLOMA":273,"PROFESI":101,"S2":23},"Tenure":{"> 3 Tahun":4159,"≤ 6 Bulan":2088,"> 12 Bulan - 2 Tahun":2002,"> 2 Tahun - 3 Tahun":1463,"> 6 - 12 Bulan":1239},"Level":{"ADMIN":9697,"LEADER":557,"STAFF":292,"COORDINATOR":131,"SECT HEAD":108,"SUPERVISOR":80,"DEPT HEAD":65,"AVP":11,"VP":6,"SVP":3,"DIR":1},"Region":{"JABODETABEK":5387,"JATIM BALI NUSRA":1876,"JATENG DIY":1287,"JABAR":1086,"SUMATERA":525,"HEAD OFFICE":472,"KALSULAMPAPUA":318},"Divisi":{"OPERATION":10454,"FINANCE":72,"IT PRODUCT MANAGEMENT & TECHNOLOGY INNOVATION":67,"SALES, GROWTH & CUSTOMER EXPERIENCE":65,"IT DEVELOPMENT":63,"WAREHOUSE AND FULFILLMENT SERVICES":56,"LAINNYA":173},"Departemen":{"FIRST & LAST MILE JABODETABEK-KALBAR OPERATION":4716,"REGION JATIM BALI NUSRA - KALSULAM OPERATION":2118,"REGION JATENG DIY OPERATION":1251,"REGION JABAR OPERATION":1071,"MID MILE JABODETABEK-KALBAR OPERATION":518,"REGION SUMATERA OPERATION":512,"TRANSPORT OPERATION":187,"WAREHOUSE & FULFILLMENT SERVICES":54,"LAINNYA":502},"Jabatan":{"SATRIA":6800,"SATRIA SDS":696,"SORTER HUB":662,"SATRIA PROJECT":646,"STAGING STORE LEADER":479,"SORTER STAGING":282,"SORTER LH":134,"SORTER GATEWAY":112,"LAINNYA":1140}},{"Month":"Mei-26","MonthNum":5,"Headcount":10920,"Gender":{"MALE":10621,"FEMALE":299},"AgeCat":{"31-40":4396,"25-30":3798,"<25":1585,">40":1141},"Marital":{"MARRIED":6234,"SINGLE":4686},"StatusOM":{"MITRA":9666,"ORGANIK":1254},"Education":{"SMA/MA":9497,"S1":1034,"DIPLOMA":267,"PROFESI":99,"S2":23},"Tenure":{"> 3 Tahun":4635,"> 12 Bulan - 2 Tahun":1861,"≤ 6 Bulan":1628,"> 2 Tahun - 3 Tahun":1420,"> 6 - 12 Bulan":1376},"Level":{"ADMIN":9667,"LEADER":558,"STAFF":289,"COORDINATOR":132,"SECT HEAD":108,"SUPERVISOR":80,"DEPT HEAD":65,"AVP":11,"VP":6,"SVP":3,"DIR":1},"Region":{"JABODETABEK":5337,"JATIM BALI NUSRA":1874,"JATENG DIY":1304,"JABAR":1087,"SUMATERA":525,"HEAD OFFICE":471,"KALSULAMPAPUA":322},"Divisi":{"OPERATION":10424,"FINANCE":71,"IT PRODUCT MANAGEMENT & TECHNOLOGY INNOVATION":66,"SALES, GROWTH & CUSTOMER EXPERIENCE":66,"IT DEVELOPMENT":63,"WAREHOUSE AND FULFILLMENT SERVICES":57,"LAINNYA":172},"Departemen":{"FIRST & LAST MILE JABODETABEK-KALBAR OPERATION":4670,"REGION JATIM BALI NUSRA - KALSULAM OPERATION":2118,"REGION JATENG DIY OPERATION":1268,"REGION JABAR OPERATION":1072,"MID MILE JABODETABEK-KALBAR OPERATION":515,"REGION SUMATERA OPERATION":512,"TRANSPORT OPERATION":188,"WAREHOUSE & FULFILLMENT SERVICES":55,"LAINNYA":500},"Jabatan":{"SATRIA":6766,"SATRIA SDS":694,"SATRIA PROJECT":659,"SORTER HUB":656,"STAGING STORE LEADER":480,"SORTER STAGING":283,"SORTER LH":129,"SORTER GATEWAY":112,"LAINNYA":1141}},{"Month":"Jun-26","MonthNum":6,"Headcount":11047,"Gender":{"MALE":10742,"FEMALE":305},"AgeCat":{"31-40":4569,"25-30":3769,"<25":1473,">40":1236},"Marital":{"MARRIED":6313,"SINGLE":4734},"StatusOM":{"MITRA":9788,"ORGANIK":1259},"Education":{"SMA/MA":9599,"S1":1048,"DIPLOMA":274,"PROFESI":102,"S2":24},"Tenure":{"> 3 Tahun":4631,"≤ 6 Bulan":1814,"> 12 Bulan - 2 Tahun":1784,"> 2 Tahun - 3 Tahun":1508,"> 6 - 12 Bulan":1310},"Level":{"ADMIN":9789,"LEADER":559,"STAFF":296,"COORDINATOR":131,"SECT HEAD":106,"SUPERVISOR":80,"DEPT HEAD":65,"AVP":11,"VP":6,"SVP":3,"DIR":1},"Region":{"JABODETABEK":5437,"JATIM BALI NUSRA":1867,"JATENG DIY":1300,"JABAR":1087,"SUMATERA":535,"HEAD OFFICE":478,"KALSULAMPAPUA":343},"Divisi":{"OPERATION":10548,"FINANCE":70,"IT PRODUCT MANAGEMENT & TECHNOLOGY INNOVATION":68,"SALES, GROWTH & CUSTOMER EXPERIENCE":65,"IT DEVELOPMENT":64,"WAREHOUSE AND FULFILLMENT SERVICES":56,"LAINNYA":176},"Departemen":{"FIRST & LAST MILE JABODETABEK-KALBAR OPERATION":4764,"REGION JATIM BALI NUSRA - KALSULAM OPERATION":2132,"REGION JATENG DIY OPERATION":1264,"REGION JABAR OPERATION":1072,"MID MILE JABODETABEK-KALBAR OPERATION":524,"REGION SUMATERA OPERATION":522,"TRANSPORT OPERATION":188,"WAREHOUSE & FULFILLMENT SERVICES":54,"LAINNYA":527},"Jabatan":{"SATRIA":6752,"SATRIA SDS":865,"SATRIA PROJECT":674,"SORTER HUB":656,"STAGING STORE LEADER":494,"SORTER STAGING":349,"SORTER GATEWAY":112,"DRIVER SDS":55,"LAINNYA":1090}}],"ASL":[{"Month":"Jan-26","MonthNum":1,"Headcount":277,"Gender":{"MALE":215,"FEMALE":62},"AgeCat":{"25-30":111,"<25":97,"31-40":61,">40":8},"Marital":{"SINGLE":196,"MARRIED":81},"StatusOM":{"MITRA":237,"ORGANIK":40},"Education":{"SMA/MA":240,"S1":26,"DIPLOMA":10,"S2":1},"Tenure":{"≤ 6 Bulan":96,"> 12 Bulan - 2 Tahun":71,"> 3 Tahun":63,"> 2 Tahun - 3 Tahun":24,"> 6 - 12 Bulan":23},"Level":{"ADMIN":237,"COORDINATOR":15,"LEADER":9,"STAFF":7,"SUPERVISOR":6,"DEPT HEAD":2,"SECT HEAD":1},"Region":{"JABODETABEK":252,"JATIM BALI NUSRA":14,"HEAD OFFICE":9,"SUMATERA":2},"Divisi":{"E-FULFILLMENT":272,"CUSTOMER EXPERIENCE":5},"Departemen":{"OPERATION REGIONAL JAKARTA-DAAN MOGOT":244,"OPERATION REGIONAL JAWA TIMUR":14,"CUSTOMER EXPERIENCE":5,"PDCA":4,"ESTATE MANAGEMENT":3,"OPERATION REGIONAL JAKARTA-ROWEY":2,"OPERATION REGIONAL MEDAN - GIOSAV":2,"OPERATION REGIONAL JAKARTA-ALADDIN":2,"LAINNYA":1},"Jabatan":{"QC & PACKER":92,"PICKER & SORTER":55,"UNLOADER & CHECKER":27,"DISPATCHER":24,"PUTAWAY & MOVEMENT":22,"CYCLE COUNT":13,"WH COORDINATOR OUTBOUND":6,"CUSTOMER EXPERIENCE REPRESENTATIVE STAFF":3,"LAINNYA":35}},{"Month":"Feb-26","MonthNum":2,"Headcount":287,"Gender":{"MALE":226,"FEMALE":61},"AgeCat":{"25-30":113,"<25":104,"31-40":62,">40":8},"Marital":{"SINGLE":208,"MARRIED":79},"StatusOM":{"MITRA":253,"ORGANIK":34},"Education":{"SMA/MA":252,"S1":25,"DIPLOMA":9,"S2":1},"Tenure":{"≤ 6 Bulan":115,"> 12 Bulan - 2 Tahun":73,"> 3 Tahun":60,"> 2 Tahun - 3 Tahun":22,"> 6 - 12 Bulan":17},"Level":{"ADMIN":253,"COORDINATOR":14,"STAFF":7,"SUPERVISOR":6,"LEADER":4,"DEPT HEAD":2,"SECT HEAD":1},"Region":{"JABODETABEK":260,"JATIM BALI NUSRA":16,"HEAD OFFICE":9,"SUMATERA":2},"Divisi":{"E-FULFILLMENT":282,"CUSTOMER EXPERIENCE":5},"Departemen":{"OPERATION REGIONAL JAKARTA-DAAN MOGOT":252,"OPERATION REGIONAL JAWA TIMUR":16,"CUSTOMER EXPERIENCE":5,"PDCA":4,"ESTATE MANAGEMENT":3,"OPERATION REGIONAL JAKARTA-ROWEY":2,"OPERATION REGIONAL MEDAN - GIOSAV":2,"OPERATION REGIONAL JAKARTA-ALADDIN":2,"LAINNYA":1},"Jabatan":{"QC & PACKER":96,"PICKER & SORTER":64,"UNLOADER & CHECKER":27,"DISPATCHER":22,"PUTAWAY & MOVEMENT":22,"CYCLE COUNT":18,"WH COORDINATOR OUTBOUND":4,"CUSTOMER EXPERIENCE REPRESENTATIVE STAFF":3,"LAINNYA":31}},{"Month":"Mar-26","MonthNum":3,"Headcount":280,"Gender":{"MALE":215,"FEMALE":65},"AgeCat":{"25-30":114,"<25":99,"31-40":59,">40":8},"Marital":{"SINGLE":205,"MARRIED":75},"StatusOM":{"MITRA":248,"ORGANIK":32},"Education":{"SMA/MA":241,"S1":28,"DIPLOMA":10,"S2":1},"Tenure":{"≤ 6 Bulan":116,"> 12 Bulan - 2 Tahun":68,"> 3 Tahun":58,"> 2 Tahun - 3 Tahun":22,"> 6 - 12 Bulan":16},"Level":{"ADMIN":248,"COORDINATOR":13,"STAFF":7,"SUPERVISOR":7,"LEADER":2,"DEPT HEAD":2,"SECT HEAD":1},"Region":{"JABODETABEK":254,"JATIM BALI NUSRA":15,"HEAD OFFICE":9,"SUMATERA":2},"Divisi":{"E-FULFILLMENT":275,"CUSTOMER EXPERIENCE":5},"Departemen":{"OPERATION REGIONAL JAKARTA-DAAN MOGOT":247,"OPERATION REGIONAL JAWA TIMUR":15,"CUSTOMER EXPERIENCE":5,"PDCA":4,"ESTATE MANAGEMENT":3,"OPERATION REGIONAL JAKARTA-ROWEY":2,"OPERATION REGIONAL MEDAN - GIOSAV":2,"OPERATION REGIONAL JAKARTA-ALADDIN":1,"LAINNYA":1},"Jabatan":{"QC & PACKER":94,"PICKER & SORTER":57,"UNLOADER & CHECKER":27,"DISPATCHER":25,"PUTAWAY & MOVEMENT":21,"CYCLE COUNT":20,"WH COORDINATOR OUTBOUND":4,"CUSTOMER EXPERIENCE REPRESENTATIVE STAFF":3,"LAINNYA":29}},{"Month":"Apr-26","MonthNum":4,"Headcount":306,"Gender":{"MALE":234,"FEMALE":72},"AgeCat":{"<25":120,"25-30":117,"31-40":62,">40":7},"Marital":{"SINGLE":225,"MARRIED":81},"StatusOM":{"MITRA":274,"ORGANIK":32},"Education":{"SMA/MA":264,"S1":31,"DIPLOMA":10,"S2":1},"Tenure":{"≤ 6 Bulan":150,"> 12 Bulan - 2 Tahun":65,"> 3 Tahun":56,"> 2 Tahun - 3 Tahun":21,"> 6 - 12 Bulan":14},"Level":{"ADMIN":274,"COORDINATOR":13,"STAFF":7,"SUPERVISOR":7,"LEADER":2,"DEPT HEAD":2,"SECT HEAD":1},"Region":{"JABODETABEK":281,"JATIM BALI NUSRA":14,"HEAD OFFICE":9,"SUMATERA":2},"Divisi":{"E-FULFILLMENT":301,"CUSTOMER EXPERIENCE":5},"Departemen":{"OPERATION REGIONAL JAKARTA-DAAN MOGOT":274,"OPERATION REGIONAL JAWA TIMUR":14,"CUSTOMER EXPERIENCE":5,"PDCA":4,"ESTATE MANAGEMENT":3,"OPERATION REGIONAL JAKARTA-ROWEY":2,"OPERATION REGIONAL MEDAN - GIOSAV":2,"OPERATION REGIONAL JAKARTA-ALADDIN":1,"LAINNYA":1},"Jabatan":{"QC & PACKER":127,"PICKER & SORTER":50,"UNLOADER & CHECKER":28,"DISPATCHER":26,"PUTAWAY & MOVEMENT":20,"CYCLE COUNT":19,"WH COORDINATOR OUTBOUND":4,"CUSTOMER EXPERIENCE REPRESENTATIVE STAFF":3,"LAINNYA":29}},{"Month":"Mei-26","MonthNum":5,"Headcount":292,"Gender":{"MALE":225,"FEMALE":67},"AgeCat":{"25-30":113,"<25":110,"31-40":62,">40":7},"Marital":{"SINGLE":213,"MARRIED":79},"StatusOM":{"MITRA":260,"ORGANIK":32},"Education":{"SMA/MA":252,"S1":29,"DIPLOMA":10,"S2":1},"Tenure":{"≤ 6 Bulan":115,"> 12 Bulan - 2 Tahun":57,"> 3 Tahun":55,"> 6 - 12 Bulan":33,"> 2 Tahun - 3 Tahun":32},"Level":{"ADMIN":260,"COORDINATOR":13,"STAFF":7,"SUPERVISOR":7,"LEADER":2,"DEPT HEAD":2,"SECT HEAD":1},"Region":{"JABODETABEK":267,"JATIM BALI NUSRA":14,"HEAD OFFICE":9,"SUMATERA":2},"Divisi":{"E-FULFILLMENT":287,"CUSTOMER EXPERIENCE":5},"Departemen":{"OPERATION REGIONAL JAKARTA-DAAN MOGOT":260,"OPERATION REGIONAL JAWA TIMUR":14,"CUSTOMER EXPERIENCE":5,"PDCA":4,"ESTATE MANAGEMENT":3,"OPERATION REGIONAL JAKARTA-ROWEY":2,"OPERATION REGIONAL MEDAN - GIOSAV":2,"OPERATION REGIONAL JAKARTA-ALADDIN":1,"LAINNYA":1},"Jabatan":{"QC & PACKER":114,"PICKER & SORTER":49,"UNLOADER & CHECKER":28,"DISPATCHER":25,"PUTAWAY & MOVEMENT":20,"CYCLE COUNT":20,"WH COORDINATOR OUTBOUND":4,"CUSTOMER EXPERIENCE REPRESENTATIVE STAFF":3,"LAINNYA":29}},{"Month":"Jun-26","MonthNum":6,"Headcount":281,"Gender":{"MALE":215,"FEMALE":66},"AgeCat":{"<25":108,"25-30":105,"31-40":61,">40":7},"Marital":{"SINGLE":209,"MARRIED":72},"StatusOM":{"MITRA":250,"ORGANIK":31},"Education":{"SMA/MA":244,"S1":28,"DIPLOMA":8,"S2":1},"Tenure":{"≤ 6 Bulan":107,"> 3 Tahun":52,"> 12 Bulan - 2 Tahun":46,"> 2 Tahun - 3 Tahun":44,"> 6 - 12 Bulan":32},"Level":{"ADMIN":250,"COORDINATOR":11,"STAFF":7,"SUPERVISOR":7,"LEADER":3,"DEPT HEAD":2,"SECT HEAD":1},"Region":{"JABODETABEK":250,"JATIM BALI NUSRA":20,"HEAD OFFICE":9,"SUMATERA":2},"Divisi":{"E-FULFILLMENT":276,"CUSTOMER EXPERIENCE":5},"Departemen":{"OPERATION REGIONAL JAKARTA-DAAN MOGOT":243,"OPERATION REGIONAL JAWA TIMUR":18,"CUSTOMER EXPERIENCE":5,"PDCA":4,"ESTATE MANAGEMENT":3,"OPERATION REGIONAL JAKARTA-ROWEY":2,"OPERATION REGIONAL MEDAN - GIOSAV":2,"OPERATION REGIONAL MEDAN - JEMADI":2,"LAINNYA":2},"Jabatan":{"QC & PACKER":103,"PICKER & SORTER":48,"UNLOADER & CHECKER":28,"DISPATCHER":27,"PUTAWAY & MOVEMENT":21,"CYCLE COUNT":20,"CUSTOMER EXPERIENCE REPRESENTATIVE STAFF":3,"WH COORDINATOR":3,"LAINNYA":28}}],"DMS":[{"Month":"Jan-26","MonthNum":1,"Headcount":203,"Gender":{"MALE":183,"FEMALE":20},"AgeCat":{"31-40":94,"25-30":84,"<25":14,">40":11},"Marital":{"SINGLE":107,"MARRIED":96},"StatusOM":{"ORGANIK":203},"Education":{"SMA/MA":139,"S1":48,"DIPLOMA":16},"Tenure":{"≤ 6 Bulan":203},"Level":{"LEADER":155,"ADMIN":48},"Region":{"JABODETABEK":104,"JATIM BALI NUSRA":32,"JATENG DIY":24,"SUMATERA":18,"JABAR":12,"KALSULAMPAPUA":11,"HEAD OFFICE":2},"Divisi":{"OPERATION":158,"E-FULFILLMENT":41,"CUSTOMER EXPERIENCE":3,"BUSINESS OPERATION & MONITORING SUPPORT":1},"Departemen":{"REGION JATIM BALI NUSRA - KALSULAM OPERATION":30,"OPERATION REGIONAL JAKARTA-DAAN MOGOT":26,"PERFORMANCE CONTROL & MONITORING":26,"REGION JATENG DIY OPERATION":21,"TRANSPORT OPERATION":19,"REGION JABODETABEK-KALBAR OPERATION":17,"B2B OPERATION":17,"REGION SUMATERA OPERATION":16,"LAINNYA":31},"Jabatan":{"STAGING STORE LEADER":34,"SOLUTION CENTER HUB":26,"SORTING HUB LEADER":17,"ADMIN B2B OPS":16,"INVENTORY HUB ADMIN":13,"REGULER TRANSPORT LEADER":13,"BULKY TRANSPORT LEADER":12,"REGIONAL TECHNICAL SUPPORT":9,"LAINNYA":63}},{"Month":"Feb-26","MonthNum":2,"Headcount":219,"Gender":{"MALE":197,"FEMALE":22},"AgeCat":{"31-40":101,"25-30":88,"<25":16,">40":14},"Marital":{"SINGLE":111,"MARRIED":108},"StatusOM":{"ORGANIK":219},"Education":{"SMA/MA":150,"S1":50,"DIPLOMA":19},"Tenure":{"≤ 6 Bulan":184,"> 6 - 12 Bulan":35},"Level":{"LEADER":169,"ADMIN":50},"Region":{"JABODETABEK":114,"JATIM BALI NUSRA":34,"JATENG DIY":27,"SUMATERA":19,"JABAR":12,"KALSULAMPAPUA":11,"HEAD OFFICE":2},"Divisi":{"OPERATION":168,"E-FULFILLMENT":47,"CUSTOMER EXPERIENCE":3,"BUSINESS OPERATION & MONITORING SUPPORT":1},"Departemen":{"OPERATION REGIONAL JAKARTA-DAAN MOGOT":33,"REGION JATIM BALI NUSRA - KALSULAM OPERATION":32,"PERFORMANCE CONTROL & MONITORING":28,"REGION JATENG DIY OPERATION":24,"TRANSPORT OPERATION":19,"REGION JABODETABEK-KALBAR OPERATION":18,"REGION SUMATERA OPERATION":17,"B2B OPERATION":17,"LAINNYA":31},"Jabatan":{"STAGING STORE LEADER":41,"SOLUTION CENTER HUB":28,"SORTING HUB LEADER":17,"ADMIN B2B OPS":16,"INVENTORY HUB ADMIN":13,"REGULER TRANSPORT LEADER":13,"BULKY TRANSPORT LEADER":12,"REGIONAL TECHNICAL SUPPORT":9,"LAINNYA":70}},{"Month":"Mar-26","MonthNum":3,"Headcount":230,"Gender":{"MALE":208,"FEMALE":22},"AgeCat":{"31-40":103,"25-30":94,"<25":19,">40":14},"Marital":{"SINGLE":118,"MARRIED":112},"StatusOM":{"ORGANIK":230},"Education":{"SMA/MA":159,"S1":51,"DIPLOMA":20},"Tenure":{"≤ 6 Bulan":195,"> 6 - 12 Bulan":35},"Level":{"LEADER":179,"ADMIN":51},"Region":{"JABODETABEK":122,"JATIM BALI NUSRA":36,"JATENG DIY":28,"SUMATERA":19,"JABAR":12,"KALSULAMPAPUA":11,"HEAD OFFICE":2},"Divisi":{"OPERATION":172,"E-FULFILLMENT":54,"CUSTOMER EXPERIENCE":3,"BUSINESS OPERATION & MONITORING SUPPORT":1},"Departemen":{"OPERATION REGIONAL JAKARTA-DAAN MOGOT":35,"REGION JATIM BALI NUSRA - KALSULAM OPERATION":33,"PERFORMANCE CONTROL & MONITORING":28,"REGION JATENG DIY OPERATION":25,"TRANSPORT OPERATION":24,"B2B OPERATION":18,"REGION SUMATERA OPERATION":17,"MID MILE JABODETABEK-KALBAR OPERATION":14,"LAINNYA":36},"Jabatan":{"STAGING STORE LEADER":43,"SOLUTION CENTER HUB":28,"SORTING HUB LEADER":17,"ADMIN B2B OPS":17,"INVENTORY HUB ADMIN":13,"REGULER TRANSPORT LEADER":13,"BULKY TRANSPORT LEADER":12,"REGIONAL TECHNICAL SUPPORT":9,"LAINNYA":78}},{"Month":"Apr-26","MonthNum":4,"Headcount":242,"Gender":{"MALE":219,"FEMALE":23},"AgeCat":{"31-40":111,"25-30":96,"<25":21,">40":14},"Marital":{"SINGLE":121,"MARRIED":121},"StatusOM":{"ORGANIK":242},"Education":{"SMA/MA":166,"S1":55,"DIPLOMA":21},"Tenure":{"≤ 6 Bulan":208,"> 6 - 12 Bulan":34},"Level":{"LEADER":189,"ADMIN":53},"Region":{"JABODETABEK":127,"JATIM BALI NUSRA":37,"JATENG DIY":30,"SUMATERA":20,"JABAR":14,"KALSULAMPAPUA":12,"HEAD OFFICE":2},"Divisi":{"OPERATION":182,"E-FULFILLMENT":56,"CUSTOMER EXPERIENCE":3,"BUSINESS OPERATION & MONITORING SUPPORT":1},"Departemen":{"REGION JATIM BALI NUSRA - KALSULAM OPERATION":34,"OPERATION REGIONAL JAKARTA-DAAN MOGOT":34,"PERFORMANCE CONTROL & MONITORING":29,"REGION JATENG DIY OPERATION":27,"TRANSPORT OPERATION":25,"REGION SUMATERA OPERATION":18,"B2B OPERATION":18,"MID MILE JABODETABEK-KALBAR OPERATION":14,"LAINNYA":43},"Jabatan":{"STAGING STORE LEADER":52,"SOLUTION CENTER HUB":29,"ADMIN B2B OPS":17,"SORTING HUB LEADER":16,"INVENTORY HUB ADMIN":13,"BULKY TRANSPORT LEADER":13,"REGULER TRANSPORT LEADER":13,"REGIONAL TECHNICAL SUPPORT":9,"LAINNYA":80}},{"Month":"Mei-26","MonthNum":5,"Headcount":242,"Gender":{"MALE":219,"FEMALE":23},"AgeCat":{"31-40":108,"25-30":97,"<25":23,">40":14},"Marital":{"MARRIED":122,"SINGLE":120},"StatusOM":{"ORGANIK":242},"Education":{"SMA/MA":168,"S1":54,"DIPLOMA":20},"Tenure":{"> 6 - 12 Bulan":157,"≤ 6 Bulan":85},"Level":{"LEADER":189,"ADMIN":53},"Region":{"JABODETABEK":129,"JATIM BALI NUSRA":36,"JATENG DIY":29,"SUMATERA":19,"JABAR":15,"KALSULAMPAPUA":12,"HEAD OFFICE":2},"Divisi":{"OPERATION":179,"E-FULFILLMENT":59,"CUSTOMER EXPERIENCE":3,"BUSINESS OPERATION & MONITORING SUPPORT":1},"Departemen":{"OPERATION REGIONAL JAKARTA-DAAN MOGOT":36,"REGION JATIM BALI NUSRA - KALSULAM OPERATION":34,"PERFORMANCE CONTROL & MONITORING":27,"REGION JATENG DIY OPERATION":26,"TRANSPORT OPERATION":25,"B2B OPERATION":18,"REGION SUMATERA OPERATION":17,"MID MILE JABODETABEK-KALBAR OPERATION":14,"LAINNYA":45},"Jabatan":{"STAGING STORE LEADER":51,"SOLUTION CENTER HUB":27,"SORTING HUB LEADER":18,"ADMIN B2B OPS":17,"INVENTORY HUB ADMIN":13,"REGULER TRANSPORT LEADER":13,"BULKY TRANSPORT LEADER":12,"REGIONAL TECHNICAL SUPPORT":9,"LAINNYA":82}},{"Month":"Jun-26","MonthNum":6,"Headcount":241,"Gender":{"MALE":219,"FEMALE":22},"AgeCat":{"31-40":112,"25-30":94,"<25":20,">40":15},"Marital":{"SINGLE":121,"MARRIED":120},"StatusOM":{"ORGANIK":241},"Education":{"SMA/MA":166,"S1":56,"DIPLOMA":19},"Tenure":{"> 6 - 12 Bulan":165,"≤ 6 Bulan":76},"Level":{"LEADER":189,"ADMIN":52},"Region":{"JABODETABEK":125,"JATIM BALI NUSRA":38,"JATENG DIY":30,"SUMATERA":19,"JABAR":15,"KALSULAMPAPUA":12,"HEAD OFFICE":2},"Divisi":{"OPERATION":181,"E-FULFILLMENT":56,"CUSTOMER EXPERIENCE":3,"BUSINESS OPERATION & MONITORING SUPPORT":1},"Departemen":{"REGION JATIM BALI NUSRA - KALSULAM OPERATION":35,"OPERATION REGIONAL JAKARTA-DAAN MOGOT":33,"PERFORMANCE CONTROL & MONITORING":28,"REGION JATENG DIY OPERATION":27,"TRANSPORT OPERATION":25,"B2B OPERATION":18,"REGION SUMATERA OPERATION":17,"MID MILE JABODETABEK-KALBAR OPERATION":14,"LAINNYA":44},"Jabatan":{"STAGING STORE LEADER":53,"SOLUTION CENTER HUB":28,"SORTING HUB LEADER":17,"ADMIN B2B OPS":17,"INVENTORY HUB ADMIN":13,"REGULER TRANSPORT LEADER":13,"BULKY TRANSPORT LEADER":12,"REGIONAL TECHNICAL SUPPORT":9,"LAINNYA":79}}]};
+
+/* ===== Data migrasi dari laporan Demografi manual (per 30 Juni 2026) ===== */
+const LEGACY = {
+  statusPegawai: {
+    TAB: { MITRA:[9604,9567,9622,9696,9666,9788], KONTRAK:[291,285,284,273,267,278], TETAP:[973,976,984,982,987,981] },
+    ASL: { MITRA:[237,253,248,274,260,250], KONTRAK:[11,6,4,4,4,3], TETAP:[29,28,28,28,28,28] },
+    DMS: { MITRA:[0,0,0,0,0,0], KONTRAK:[203,219,230,242,242,241], TETAP:[0,0,0,0,0,0] }
+  },
+  kjDef: [
+    ["KJ 1","Admin, Operator"],
+    ["KJ 2","Leader"],
+    ["KJ 3","Coordinator, Staff"],
+    ["KJ 4","Staff, SPV, Sect Head, Dept Head"],
+    ["KJ 5 Up","AVP ke atas"]
+  ],
+  kjAllPT: {
+    "KJ 1":[50,52,51,53,53,52], "KJ 2":[747,751,761,755,754,754], "KJ 3":[229,230,236,238,239,246],
+    "KJ 4":[460,460,461,462,461,458], "KJ 5 Up":[21,21,21,21,21,21]
+  },
+  kjCompany: {
+    TAB: {"KJ 1":[2,2,1,1,1,1],"KJ 2":[580,575,576,560,560,561],"KJ 3":[211,213,219,221,221,228],"KJ 4":[450,450,451,452,451,448],"KJ 5 Up":[21,21,21,21,21,21]},
+    ASL: {"KJ 1":[0,0,0,0,0,0],"KJ 2":[12,7,5,5,4,3],"KJ 3":[18,17,17,17,18,18],"KJ 4":[10,10,10,10,10,10],"KJ 5 Up":[0,0,0,0,0,0]},
+    DMS: {"KJ 1":[48,50,50,52,52,51],"KJ 2":[155,169,180,190,190,190],"KJ 3":[0,0,0,0,0,0],"KJ 4":[0,0,0,0,0,0],"KJ 5 Up":[0,0,0,0,0,0]}
+  },
+  dlidlDef: [
+    ["DL","All Satria, All Sorter, Rider Driver, Transport"],
+    ["IDL","SSA/SSL, SSC, LH/DC, Hub Leader Coordinator"],
+    ["S&M","Drop Off Operator Leader, Area Sales Coordinator, Client Relation Officer, Sales Marketing HO/Regional"],
+    ["HO","AVP Up, Business Dev Plan, Business Ops Support, BPM, Cargo Logistic, Finance, Human Capital, Internal Audit, QA, IT Dev/Ops/PMTI, Pharma Solution, Ops Dept Head Up, Ops Control Tower, Ops Dev, GA & Network Regional, Technical Support Regional"]
+  ],
+  dlidl: [
+    {co:"TAB", k:"TAB COGS - DL",  v:[9548,9512,9572,9647,9617,9740]},
+    {co:"TAB", k:"TAB COGS - IDL", v:[735,728,725,708,708,709]},
+    {co:"TAB", k:"TAB OPEX - HO",  v:[473,474,477,479,476,481]},
+    {co:"TAB", k:"TAB OPEX - S&M", v:[57,59,61,63,64,63]},
+    {co:"TAB", k:"KPS COGS - IDL", v:[55,55,55,54,55,54]},
+    {co:"ASL", k:"ASL COGS - DL",  v:[234,252,247,273,259,250]},
+    {co:"ASL", k:"ASL COGS - IDL", v:[32,24,22,22,22,20]},
+    {co:"ASL", k:"ASL OPEX - HO",  v:[6,6,6,6,6,6]},
+    {co:"ASL", k:"ASL OPEX - S&M", v:[5,5,5,5,5,5]},
+    {co:"DMS", k:"ASL COGS - DL",  v:[24,28,34,35,36,34]},
+    {co:"DMS", k:"ASL COGS - IDL", v:[10,12,12,12,13,13]},
+    {co:"DMS", k:"ASL OPEX - HO",  v:[4,3,3,4,4,4]},
+    {co:"DMS", k:"TAB COGS - IDL", v:[113,122,126,135,135,135]},
+    {co:"DMS", k:"TAB OPEX - HO",  v:[52,54,55,56,54,55]}
+  ],
+  outsourceMonth: "Jun-26",
+  outsourceSummary: [
+    ["TAB","APPRENTICE",45], ["TAB","OUTSOURCING",31], ["TAB","TRAINEE",10],
+    ["ASL","APPRENTICE",1], ["ASL","OUTSOURCING",0]
+  ],
+  outsourceDetail: [
+    ["TAB","IT OPERATION","APPRENTICE",15],
+    ["TAB","SALES, GROWTH & CUSTOMER EXPERIENCE","OUTSOURCING",21],
+    ["TAB","HUMAN CAPITAL","TRAINEE",10],
+    ["TAB","HUMAN CAPITAL","APPRENTICE",8],
+    ["TAB","FINANCE","APPRENTICE",7],
+    ["TAB","IT DEVELOPMENT","OUTSOURCING",7],
+    ["TAB","OPERATION","APPRENTICE",7],
+    ["TAB","BRAND & BUSINESS ECOSYSTEM","APPRENTICE",3],
+    ["TAB","IT SERVICES AND PROJECT COORDINATION","APPRENTICE",3],
+    ["TAB","BUSINESS PROCESS & RISK MANAGEMENT","OUTSOURCING",2],
+    ["TAB","IT PMTI","APPRENTICE",1],
+    ["TAB","IT SERVICES AND PROJECT COORDINATION","OUTSOURCING",1],
+    ["ASL","E-FULFILLMENT","APPRENTICE",1]
+  ],
+  termOrganikMonth: "Jun-26",
+  termOrganikKategori: [
+    ["Terminasi All", 21, 1311, "1,60%"],
+    ["Terminasi Voluntary", 13, 1311, "0,99%"],
+    ["Terminasi Involuntary", 8, 1311, "0,61%"]
+  ],
+  termOrganikAlasan: [
+    ["PERMINTAAN SENDIRI",7], ["TIDAK LOLOS TRAINEE/KONTRAK",7], ["BETTER JOB & BENEFIT",2],
+    ["ALASAN LOKASI & JAM KERJA",1], ["FRAUD",1], ["WIRASWASTA",1], ["REHIRE",1], ["MUTASI KE TRI PUTRA GROUP",1]
+  ]
+};
+
+/* ===== Rekonsiliasi: hitung ulang summary dari data profil per karyawan =====
+   Menyamakan angka dashboard dengan laporan demografi manual (mis. Jan-26 = 11.348). */
+(function reconcile(){
+  DATA.summary.forEach((s,i)=>{
+    let tot=0, org=0, mit=0;
+    ['TAB','ASL','DMS'].forEach(co=>{
+      const cp = COMPANY_PROFILE[co][i];
+      s[co] = cp.Headcount;
+      tot += cp.Headcount;
+      org += cp.StatusOM['ORGANIK']||0;
+      mit += cp.StatusOM['MITRA']||0;
+    });
+    s.TotalHeadcount = tot; s.Organik = org; s.Mitra = mit;
+  });
+})();
+
+const BMAGENTA = "#ED0677", BBLUE = "#496AAA", BMAROON = "#841945", BPINK = "#F6AABF", BYELLOW = "#FFCB05", MUTED = "#9CA3AF";
+const CO_COLORS = {TAB:BMAGENTA, ASL:BBLUE, DMS:BMAROON};
+Chart.register(ChartDataLabels);
+Chart.defaults.set('plugins.datalabels', { display:false });
+Chart.defaults.font.family = "'Inter','Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+Chart.defaults.color = "#6B7280";
+Chart.defaults.set('plugins.title', { color: "#111827" });
+Chart.defaults.animation = false;
+/* tooltip default: bulatkan angka sesuai parameter desimal (fix 4,80000000000%) */
+Chart.defaults.plugins.tooltip.callbacks.label = function(ctx){
+  let raw = ctx.parsed;
+  if(raw && typeof raw === 'object'){ raw = (ctx.chart.options.indexAxis==='y') ? raw.x : raw.y; }
+  const unit = ctx.dataset.unit ? ctx.dataset.unit : '';
+  const isNum = (typeof raw === 'number' && isFinite(raw));
+  const v = isNum ? (unit==='%' ? pctID(raw) : fmtVal(raw)) : raw;
+  const name = ctx.dataset.label || ctx.label || '';
+  return ' ' + (name ? name + ': ' : '') + v + unit;
+};
+
+let currentMonthIdx = DATA.summary.length - 1;
+const MONTHS = DATA.summary.map(s=>s.Month);
+/* ---------- editable parameters (section 10) ---------- */
+const PARAM_DEFAULTS = {
+  target:      { v:4.0,  label:'Target Turnover Rate Bulanan (%)', en:'Monthly turnover target', hint:'Batas atas turnover rate per bulan. Dipakai di garis target semua chart, KPI alert, signal, tabel perbandingan, dan narasi.' },
+  hiMult:      { v:1.5,  label:'Multiplier "Turnover Tinggi"', en:'High-turnover chip multiplier', hint:'Chip "Turnover tinggi" muncul jika rata-rata rate company > Target \u00d7 multiplier ini.' },
+  lowRate:     { v:2.0,  label:'Batas "Turnover Rendah" (%)', en:'Low-turnover chip threshold', hint:'Chip "Turnover rendah" muncul jika rata-rata rate company \u2264 nilai ini.' },
+  tenure6Th:   { v:30,   label:'Batas % Masa Kerja \u2264 6 Bulan', en:'Early-tenure warning threshold', hint:'Chip peringatan &amp; narasi early-attrition aktif jika % karyawan bermasa kerja \u2264 6 bulan \u2265 nilai ini.' },
+  mitraTh:     { v:85,   label:'Batas % Mitra Dominan', en:'Mitra-dominant chip threshold', hint:'Chip "% Mitra" muncul jika komposisi Mitra company \u2265 nilai ini.' },
+  growthTh:    { v:10,   label:'Batas Growth Positif (%)', en:'Growth chip threshold', hint:'Chip "Tumbuh sejak Jan" muncul jika growth Jan\u2192bulan berjalan \u2265 nilai ini.' },
+  termSpikeTh: { v:15,   label:'Batas Lonjakan Terminasi MoM (%)', en:'Termination spike signal threshold', hint:'Signal lonjakan/penurunan terminasi muncul jika perubahan MoM melewati \u00b1 nilai ini.' },
+  decimals:    { v:2,    label:'Jumlah Desimal Persentase', en:'Percentage decimal places', hint:'Semua angka persentase (KPI, tabel, tooltip, label chart) dibulatkan ke jumlah desimal ini.', min:0, max:4, step:1 }
+};
+let PARAMS = {};
+Object.keys(PARAM_DEFAULTS).forEach(k=> PARAMS[k] = PARAM_DEFAULTS[k].v);
+try{
+  const saved = JSON.parse(localStorage.getItem('hcaja_wfreport_params')||'null');
+  if(saved) Object.keys(PARAM_DEFAULTS).forEach(k=>{ if(typeof saved[k]==='number' && isFinite(saved[k])) PARAMS[k]=saved[k]; });
+}catch(e){}
+let TURNOVER_TARGET = PARAMS.target; // % threshold — editable di section 10 Parameter
+
+function fmt(n){ return new Intl.NumberFormat('id-ID').format(Math.round(n)); }
+function pctID(n){ return n.toLocaleString('id-ID', {minimumFractionDigits:PARAMS.decimals, maximumFractionDigits:PARAMS.decimals}); }
+function fmtVal(n){ return (typeof n==='number' && isFinite(n)) ? n.toLocaleString('id-ID',{maximumFractionDigits:PARAMS.decimals}) : n; }
+function pct(n){ return (n>=0?"+":"") + pctID(n) + "%"; }
+function pct1(n){ return n.toLocaleString('id-ID',{minimumFractionDigits:1, maximumFractionDigits:1})+"%"; }
+
+/* registry chart: buat/hancurkan aman untuk render berulang */
+const CHARTS = {};
+function mkChart(id, cfg){
+  const el = document.getElementById(id);
+  if(!el) return null;
+  if(CHARTS[id]){ CHARTS[id].destroy(); }
+  CHARTS[id] = new Chart(el, cfg);
+  return CHARTS[id];
+}
+
+/* sparkline mini di dalam KPI card */
+function fmtSpark(v, kind){
+  if(kind==='pct') return v.toLocaleString('id-ID',{minimumFractionDigits:1, maximumFractionDigits:1})+'%';
+  if(Math.abs(v)>=10000) return new Intl.NumberFormat('id-ID',{notation:'compact', maximumFractionDigits:1}).format(v);
+  return (v>0 && kind==='signed' ? '+' : '') + fmt(v);
+}
+function mkSpark(id, series, color, highlightIdx, kind){
+  mkChart(id, {
+    type:'line',
+    data:{ labels: series.map((_,i)=>i), datasets:[{ data: series, borderColor: color, borderWidth:2, tension:.35, fill:false,
+      pointRadius: series.map((_,i)=> i===highlightIdx?4:2.2),
+      pointBackgroundColor: series.map((_,i)=> i===highlightIdx? color : '#FFFFFF'),
+      pointBorderColor: color, pointBorderWidth: 1.4,
+      datalabels:{ display:true, clip:false, anchor:'end', align:'top', offset:2,
+        color: ctx => ctx.dataIndex===highlightIdx ? color : '#6B7280',
+        font: ctx => ({size: ctx.dataIndex===highlightIdx ? 8 : 7, weight:'bold'}),
+        formatter: v => fmtSpark(v, kind) } }]},
+    options:{ responsive:true, maintainAspectRatio:false, events:[],
+      layout:{padding:{top:12, left:10, right:12, bottom:1}},
+      plugins:{ legend:{display:false}, tooltip:{enabled:false} },
+      scales:{ x:{display:false}, y:{display:false} } }
+  });
+}
+
+/* metrik turunan per company */
+function coMetrics(coKey, idx){
+  const cp = COMPANY_PROFILE[coKey][idx];
+  const s = DATA.summary[idx];
+  const t = DATA.turnover[idx];
+  const hc = cp.Headcount;
+  const term = t.ByCompany[coKey]||0;
+  const tenure6 = cp.Tenure['\u2264 6 Bulan']||0;
+  const tenure3 = cp.Tenure['> 3 Tahun']||0;
+  const mitra = cp.StatusOM['MITRA']||0;
+  const organik = cp.StatusOM['ORGANIK']||0;
+  const sma = cp.Education['SMA/MA']||0;
+  const levelTop = Object.entries(cp.Level).sort((a,b)=>b[1]-a[1])[0];
+  const avgRate = DATA.turnover.reduce((a,tt,i)=> a + (tt.ByCompany[coKey]||0)/COMPANY_PROFILE[coKey][i].Headcount*100, 0)/DATA.turnover.length;
+  const hc0 = COMPANY_PROFILE[coKey][0].Headcount;
+  return {
+    hc, term,
+    share: hc/s.TotalHeadcount*100,
+    rate: term/hc*100,
+    avgRate,
+    growth6: (hc-hc0)/hc0*100,
+    growthAbs: hc-hc0,
+    pctMitra: mitra/(mitra+organik||1)*100, mitraCnt: mitra,
+    pctTenure6: tenure6/hc*100, tenure6Cnt: tenure6,
+    pctTenure3: tenure3/hc*100, tenure3Cnt: tenure3,
+    pctSMA: sma/hc*100, smaCnt: sma,
+    levelTop: levelTop[0]+" ("+pctID(levelTop[1]/hc*100)+"% \u00b7 "+fmt(levelTop[1])+")"
+  };
+}
+
+/* ===================== TAB 1: RINGKASAN EKSEKUTIF ===================== */
+function detectSignals(){
+  const i = currentMonthIdx;
+  const s = DATA.summary[i], t = DATA.turnover[i];
+  const prevT = i>0 ? DATA.turnover[i-1] : null;
+  const sigs = [];
+  const rate = t.Termination/s.TotalHeadcount*100;
+  if(rate > TURNOVER_TARGET){
+    sigs.push({cls:'bad', ic:'\u25CF', txt:`Turnover rate grup <b>${pctID(rate)}%</b> masih di atas target ${pctID(TURNOVER_TARGET)}% pada ${s.Month}.`});
+  } else {
+    sigs.push({cls:'good', ic:'\u25CF', txt:`Turnover rate grup <b>${pctID(rate)}%</b> berada di bawah target ${pctID(TURNOVER_TARGET)}% pada ${s.Month}.`});
+  }
+  if(prevT){
+    const chg = (t.Termination-prevT.Termination)/prevT.Termination*100;
+    if(chg >= PARAMS.termSpikeTh) sigs.push({cls:'warn', ic:'\u25B2', txt:`Terminasi melonjak <b>${pct(chg)}</b> dibanding bulan lalu (${fmt(prevT.Termination)} → ${fmt(t.Termination)} kasus).`});
+    if(chg <= -PARAMS.termSpikeTh) sigs.push({cls:'good', ic:'\u25BC', txt:`Terminasi turun signifikan <b>${pctID(Math.abs(chg))}%</b> dibanding bulan lalu (${fmt(prevT.Termination)} → ${fmt(t.Termination)} kasus).`});
+    const newReasons = Object.keys(t.TopReason).filter(r=>!(r in prevT.TopReason));
+    newReasons.forEach(r=>{
+      sigs.push({cls:'warn', ic:'!', txt:`Alasan terminasi baru masuk top-3 bulan ini: <b>${r}</b> (${fmt(t.TopReason[r])} kasus) — perlu ditelusuri akar masalahnya.`});
+    });
+  }
+  const aslM = coMetrics('ASL', i);
+  if(aslM.avgRate > 2*(DATA.turnover.reduce((a,tt,k)=>a+tt.Termination/DATA.summary[k].TotalHeadcount*100,0)/DATA.turnover.length)){
+    sigs.push({cls:'warn', ic:'!', txt:`Turnover ASL secara struktural jauh di atas grup (rata-rata <b>${pctID(aslM.avgRate)}%</b>/bulan Jan–Jun) — lihat tab Perbandingan Company.`});
+  }
+  const cek = COMPANY_PROFILE.TAB[i].Region['CEK ULANG'];
+  if(cek) sigs.push({cls:'info', ic:'i', txt:`Data quality: <b>${fmt(cek)} karyawan</b> dengan region "CEK ULANG" pada ${s.Month} — perlu pemetaan ulang lokasi di master data.`});
+  document.getElementById('execSignals').innerHTML =
+    sigs.map(g=>`<div class="signal ${g.cls}"><span class="ic">${g.ic}</span><span>${g.txt}</span></div>`).join('');
+}
+
+function renderKPICards(){
+  const i = currentMonthIdx;
+  const s = DATA.summary[i];
+  const prev = i>0 ? DATA.summary[i-1] : null;
+  const t = DATA.turnover[i];
+  const hcDelta = prev ? ((s.TotalHeadcount-prev.TotalHeadcount)/prev.TotalHeadcount*100) : 0;
+  const turnoverRate = (t.Termination / s.TotalHeadcount * 100);
+  const prevTurnoverRate = prev ? (DATA.turnover[i-1].Termination / prev.TotalHeadcount * 100) : null;
+  const net = s.Hiring - t.Termination;
+  const t3Tot = ['TAB','ASL','DMS'].reduce((a,co)=>a+(COMPANY_PROFILE[co][i].Tenure['> 3 Tahun']||0),0);
+
+  const hcSeries = DATA.summary.map(x=>x.TotalHeadcount);
+  const hireSeries = DATA.summary.map(x=>x.Hiring);
+  const termSeries = DATA.turnover.map(x=>x.Termination);
+  const rateSeries = DATA.summary.map((x,k)=>DATA.turnover[k].Termination/x.TotalHeadcount*100);
+  const netSeries = DATA.summary.map((x,k)=>x.Hiring-DATA.turnover[k].Termination);
+  const t3Series = DATA.summary.map((x,k)=> ['TAB','ASL','DMS'].reduce((a,co)=>a+(COMPANY_PROFILE[co][k].Tenure['> 3 Tahun']||0),0)/x.TotalHeadcount*100);
+
+  const cards = [
+    {label:"Total Headcount", en:"Group headcount", value: fmt(s.TotalHeadcount), delta: prev? pct(hcDelta): null, dir: hcDelta>=0.05?"up":(hcDelta<=-0.05?"down":"flat"), spark:{id:'sp_hc', series:hcSeries, color:BMAGENTA}},
+    {label:"Organik : Mitra", en:"Composition", value: pctID(s.Organik/s.TotalHeadcount*100)+"% : "+pctID(s.Mitra/s.TotalHeadcount*100)+"%", ctx:`${fmt(s.Organik)} organik · ${fmt(s.Mitra)} mitra`},
+    {label:"Total Hiring", en:"New joiners", value: fmt(s.Hiring), spark:{id:'sp_hire', series:hireSeries, color:'#16A34A'}},
+    {label:"Total Termination", en:"Leavers", value: fmt(t.Termination), spark:{id:'sp_term', series:termSeries, color:'#DC2626'}},
+    {label:"Net Movement", en:"Hiring − termination", value: (net>=0?'+':'')+fmt(net)+' orang', spark:{id:'sp_net', series:netSeries, color:BBLUE, kind:'signed'}},
+    {label:"Turnover Rate", en:"Termination ÷ headcount", value: pctID(turnoverRate)+"%", alert: turnoverRate>TURNOVER_TARGET,
+      delta: prevTurnoverRate!==null? pct(turnoverRate-prevTurnoverRate)+" pt":null,
+      dir: prevTurnoverRate!==null? (turnoverRate>prevTurnoverRate?"down":"up"):"flat",
+      ctx:`Target \u2264 ${pctID(TURNOVER_TARGET)}%`, spark:{id:'sp_rate', series:rateSeries, color:BMAROON, kind:'pct'}},
+    {label:"% Masa Kerja > 3 Tahun", en:"Long tenure \u2014 monitoring kompensasi PKWT", value: pctID(t3Tot/s.TotalHeadcount*100)+"%", ctx:`${fmt(t3Tot)} orang`, spark:{id:'sp_t3', series:t3Series, color:BPINK, kind:'pct'}},
+    {label:"Growth MoM", en:"Month-on-month", value: (prev? pct(hcDelta):"\u2014"), ctx:`Jan\u2192${s.Month}: ${pct((s.TotalHeadcount-DATA.summary[0].TotalHeadcount)/DATA.summary[0].TotalHeadcount*100)}`}
+  ];
+  const el = document.getElementById('kpiCards');
+  el.innerHTML = cards.map(c=>`
+    <div class="kpi">
+      <div class="label">${c.label}</div>
+      <div class="en">${c.en||''}</div>
+      <div class="value${c.alert?' alert':''}">${c.value}</div>
+      ${c.delta? `<div class="delta ${c.dir||'flat'}">${c.dir==='up'?'\u25b2':(c.dir==='down'?'\u25bc':'\u2014')} ${c.delta}</div>`:''}
+      ${c.ctx? `<div class="ctx">${c.ctx}</div>`:''}
+      ${c.spark? `<div class="spark"><canvas id="${c.spark.id}"></canvas></div>`:''}
+    </div>`).join('');
+  cards.forEach(c=>{ if(c.spark) mkSpark(c.spark.id, c.spark.series, c.spark.color, i, c.spark.kind); });
+
+  const narrEl = document.getElementById('execNarrative');
+  const growDesc = hcDelta>0.05 ? "tumbuh" : (hcDelta<-0.05 ? "menurun" : "relatif stabil");
+  const mitraShareDelta = prev ? ((s.Mitra/s.TotalHeadcount) - (prev.Mitra/prev.TotalHeadcount))*100 : 0;
+  const mitraDesc = mitraShareDelta>0.1 ? "didorong penambahan tenaga Mitra" : (mitraShareDelta<-0.1 ? "didorong penguatan tenaga Organik" : "dengan komposisi organik-mitra yang stabil");
+  const netDesc = net>=0 ? `arus masuk-keluar positif (net <b>+${fmt(net)}</b> orang)` : `arus keluar melebihi hiring (net <b>${fmt(net)}</b> orang)`;
+  narrEl.innerHTML = `<b>${s.Month}:</b> Headcount TAB Group mencapai <b>${fmt(s.TotalHeadcount)}</b> orang, ${growDesc} ${prev? pct(hcDelta):''} dari bulan lalu, ${mitraDesc}. Hiring ${fmt(s.Hiring)} vs terminasi ${fmt(t.Termination)} menghasilkan ${netDesc}, dengan turnover rate <b>${pctID(turnoverRate)}%</b>${turnoverRate>TURNOVER_TARGET?' — masih di atas target':' — di bawah target'} ${pctID(TURNOVER_TARGET)}%.`;
+}
+
+function renderCompanyShareChart(){
+  /* Usulan A (disetujui): TAB dipecah Mitra vs Organik; ASL & DMS di dasar chart; semua segmen berlabel % */
+  const total = DATA.summary.map(s=>s.TotalHeadcount);
+  const segRaw = {
+    'ASL':         MONTHS.map((_,i)=> DATA.summary[i].ASL),
+    'DMS':         MONTHS.map((_,i)=> DATA.summary[i].DMS),
+    'TAB Organik': MONTHS.map((_,i)=> LEGACY.statusPegawai.TAB.KONTRAK[i] + LEGACY.statusPegawai.TAB.TETAP[i]),
+    'TAB Mitra':   MONTHS.map((_,i)=> LEGACY.statusPegawai.TAB.MITRA[i])
+  };
+  const segPct = {};
+  Object.keys(segRaw).forEach(k=> segPct[k] = segRaw[k].map((v,i)=> v/total[i]*100));
+  const SEG_COLORS = { 'TAB Mitra':BMAGENTA, 'TAB Organik':BPINK, 'ASL':BBLUE, 'DMS':BMAROON };
+  const ORDER = ['ASL','DMS','TAB Organik','TAB Mitra']; /* bawah -> atas */
+  mkChart('companyShareChart', {
+    type:'bar',
+    data:{ labels: MONTHS, datasets: ORDER.map(k=>({
+      label:k, data:segPct[k], backgroundColor:SEG_COLORS[k], stack:'a',
+      datalabels:{
+        display:true,
+        color: k==='TAB Organik' ? '#831843' : '#fff',
+        font:{ size:(k==='ASL'||k==='DMS')?8.5:(k==='TAB Organik'?10:12), weight:'bold' },
+        formatter:v=>pctID(v)+'%',
+        anchor:'center', align:'center', clip:false
+      }
+    })) },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{
+        title:{display:true, text:'Share Headcount per Company & Status (100% Stacked)', font:{size:13,weight:'600'}},
+        legend:{position:'bottom', labels:{boxWidth:10,font:{size:10.5}}},
+        tooltip:{callbacks:{label:(c)=>` ${c.dataset.label}: ${pctID(c.raw)}%  (${fmt(segRaw[c.dataset.label][c.dataIndex])} orang)`}}
+      },
+      scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, max:100, grid:{color:'#F1F5F9'}, ticks:{callback:v=>fmtVal(v)+'%'}} } }
+  });
+}
+
+function renderTurnoverTrend(){
+  const rates = DATA.summary.map((s,i)=> (DATA.turnover[i].Termination/s.TotalHeadcount*100));
+  mkChart('turnoverTrendChart', {
+    type:'line',
+    data:{ labels: MONTHS, datasets:[
+      { label:'Turnover Rate (%)', data:rates, unit:'%', borderColor:BMAROON, backgroundColor:'rgba(244,96,12,.12)', fill:true, tension:.3, pointRadius:4, pointBackgroundColor:BMAROON,
+        datalabels:{display:true, color:BMAROON, anchor:'end', align:'top', offset:2, font:{size:9.5,weight:'bold'}, formatter:v=>pctID(v)+'%', clip:false} },
+      { label:`Target (${pctID(TURNOVER_TARGET)}%)`, data:MONTHS.map(()=>TURNOVER_TARGET), unit:'%', borderColor:'#9CA3AF', borderWidth:1.5, borderDash:[6,5], pointRadius:0, fill:false }
+    ] },
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:18}},
+      plugins:{ title:{display:true, text:'Trend Turnover Rate Grup Jan\u2013Jun 2026', font:{size:13,weight:'600'}}, legend:{display:true, position:'bottom', labels:{boxWidth:10,font:{size:10}}} },
+      scales:{ y:{ grid:{color:'#F1F5F9'}, ticks:{callback:v=>fmtVal(v)+'%'} }, x:{grid:{display:false}} } }
+  });
+}
+
+function renderNetMovement(){
+  const hires = DATA.summary.map(s=>s.Hiring);
+  const terms = DATA.turnover.map(t=>-t.Termination);
+  const net = DATA.summary.map((s,i)=>s.Hiring - DATA.turnover[i].Termination);
+  mkChart('netMovementChart', {
+    type:'bar',
+    data:{ labels: MONTHS, datasets:[
+      { type:'bar', label:'Hiring', data:hires, backgroundColor:'rgba(30,142,90,.85)', borderRadius:4, stack:'m',
+        datalabels:{display:true, color:'#16A34A', anchor:'end', align:'top', font:{size:9,weight:'bold'}, formatter:v=>'+'+fmt(v)} },
+      { type:'bar', label:'Termination', data:terms, backgroundColor:'rgba(208,52,44,.8)', borderRadius:4, stack:'m',
+        datalabels:{display:true, color:'#DC2626', anchor:'start', align:'bottom', font:{size:9,weight:'bold'}, formatter:v=>fmt(v)} },
+      { type:'line', label:'Net Movement', data:net, borderColor:BMAGENTA, borderWidth:2.5, pointRadius:4, pointBackgroundColor:BMAGENTA, tension:.3,
+        datalabels:{display:false} }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:18,bottom:12}},
+      plugins:{ title:{display:true, text:'Hiring & Termination \u2014 Net Movement (Grup)', font:{size:13,weight:'600'}}, legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}} },
+      scales:{ x:{stacked:true, grid:{display:false}}, y:{grid:{color:'#F1F5F9'}} } }
+  });
+}
+
+function renderAllCompanyInsight(){
+  const tabPct0 = DATA.summary[0].TAB/DATA.summary[0].TotalHeadcount*100;
+  const last = DATA.summary.length-1;
+  const tabPctN = DATA.summary[last].TAB/DATA.summary[last].TotalHeadcount*100;
+  const rates = DATA.summary.map((s,i)=> (DATA.turnover[i].Termination/s.TotalHeadcount*100));
+  const monthsOver = rates.filter(r=>r>TURNOVER_TARGET).length;
+  const nets = DATA.summary.map((s,i)=>s.Hiring-DATA.turnover[i].Termination);
+  const netTot = nets.reduce((a,b)=>a+b,0);
+  document.getElementById('allCompanyInsight').innerHTML = `<b>Insight:</b> TAB tetap menjadi tulang punggung grup dengan share ${pctID(tabPctN)}% dari total headcount (${MONTHS[0]}: ${pctID(tabPct0)}%). Akumulasi Jan\u2013Jun, hiring melebihi terminasi dengan net <b>${netTot>=0?'+':''}${fmt(netTot)}</b> orang, namun turnover rate grup masih di atas target ${pctID(TURNOVER_TARGET)}% pada <b>${monthsOver} dari ${rates.length}</b> bulan berjalan \u2014 pertumbuhan headcount saat ini lebih banyak ditopang volume hiring, bukan retensi.`;
+}
+
+function renderExec(){
+  detectSignals();
+  renderKPICards();
+  renderCompanyShareChart();
+  renderTurnoverTrend();
+  renderNetMovement();
+  renderAllCompanyInsight();
+}
+
+/* ===================== TAB 2: PERBANDINGAN COMPANY ===================== */
+function renderCompareTable(){
+  const i = currentMonthIdx;
+  const m = {TAB:coMetrics('TAB',i), ASL:coMetrics('ASL',i), DMS:coMetrics('DMS',i)};
+  const rows = [
+    {label:'Headcount '+MONTHS[i], get:c=>fmt(m[c].hc), raw:c=>m[c].hc, hi:'max'},
+    {label:'Share dari grup', get:c=>pctID(m[c].share)+'%', raw:c=>m[c].share, hi:'max'},
+    {label:'Growth Jan\u2192'+MONTHS[MONTHS.length-1], get:c=>pct(m[c].growth6)+' ('+(m[c].growthAbs>=0?'+':'')+fmt(m[c].growthAbs)+')', raw:c=>m[c].growth6, hi:'max'},
+    {label:'Turnover rate '+MONTHS[i], get:c=>pctID(m[c].rate)+'% ('+fmt(m[c].term)+')', raw:c=>m[c].rate, hi:'max', alertOver:TURNOVER_TARGET},
+    {label:'Rata-rata turnover rate (6 bln)', get:c=>pctID(m[c].avgRate)+'%', raw:c=>m[c].avgRate, hi:'max', alertOver:TURNOVER_TARGET},
+    {label:'% Mitra', get:c=>pctID(m[c].pctMitra)+'% ('+fmt(m[c].mitraCnt)+')', raw:c=>m[c].pctMitra, hi:'max'},
+    {label:'% Masa kerja \u2264 6 bulan', get:c=>pctID(m[c].pctTenure6)+'% ('+fmt(m[c].tenure6Cnt)+')', raw:c=>m[c].pctTenure6, hi:'max'},
+    {label:'% Masa kerja > 3 tahun', get:c=>pctID(m[c].pctTenure3)+'% ('+fmt(m[c].tenure3Cnt)+')', raw:c=>m[c].pctTenure3, hi:'max'},
+    {label:'% Pendidikan SMA/MA', get:c=>pctID(m[c].pctSMA)+'% ('+fmt(m[c].smaCnt)+')', raw:c=>m[c].pctSMA, hi:'max'},
+    {label:'Level dominan', get:c=>m[c].levelTop, raw:()=>null}
+  ];
+  const cos = ['TAB','ASL','DMS'];
+  let html = `<tr><th class="lft">Metrik (${MONTHS[i]})</th>${cos.map(c=>`<th>${c}</th>`).join('')}</tr>`;
+  rows.forEach(r=>{
+    const vals = cos.map(c=>r.raw(c));
+    const best = r.hi==='max' && vals.every(v=>v!==null) ? Math.max(...vals) : null;
+    html += `<tr><td class="lft">${r.label}</td>` + cos.map((c,k)=>{
+      const cls = [];
+      if(best!==null && vals[k]===best) cls.push('best');
+      if(r.alertOver!==undefined && vals[k]>r.alertOver) cls.push('neg');
+      return `<td class="${cls.join(' ')}">${r.get(c)}</td>`;
+    }).join('') + `</tr>`;
+  });
+  document.getElementById('compareTable').innerHTML = html;
+}
+
+function renderCompareCharts(){
+  const dsRate = ['TAB','ASL','DMS'].map(co=>({
+    label:co, unit:'%',
+    data: DATA.turnover.map((t,i)=> (t.ByCompany[co]||0)/COMPANY_PROFILE[co][i].Headcount*100),
+    borderColor: CO_COLORS[co], backgroundColor: CO_COLORS[co], borderWidth:2.5, tension:.3, pointRadius:3.5, fill:false,
+    datalabels:{display:true, color:CO_COLORS[co], anchor:'end', align: co==='DMS'?'bottom':'top', offset:2, font:{size:8.5,weight:'bold'}, formatter:v=>pctID(v)+'%', clip:false}
+  }));
+  dsRate.push({ label:`Target (${pctID(TURNOVER_TARGET)}%)`, unit:'%', data:MONTHS.map(()=>TURNOVER_TARGET), borderColor:'#9CA3AF', borderWidth:1.5, borderDash:[6,5], pointRadius:0, fill:false });
+  mkChart('cmpTurnoverRateChart', {
+    type:'line', data:{ labels:MONTHS, datasets: dsRate },
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:16,bottom:6}},
+      plugins:{ title:{display:true, text:'Turnover Rate per Company (%) \u2014 apple-to-apple', font:{size:13,weight:'600'}}, legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}} },
+      scales:{ y:{ grid:{color:'#F1F5F9'}, ticks:{callback:v=>fmtVal(v)+'%'} }, x:{grid:{display:false}} } }
+  });
+
+  const dsIdx = ['TAB','ASL','DMS'].map(co=>({
+    label:co,
+    data: COMPANY_PROFILE[co].map(cp=> cp.Headcount/COMPANY_PROFILE[co][0].Headcount*100),
+    borderColor: CO_COLORS[co], borderWidth:2.5, tension:.3, pointRadius:3.5, fill:false,
+    datalabels:{display:'auto', color:CO_COLORS[co], anchor:'end', align: co==='TAB'?'bottom':'top', offset:2, font:{size:8.5,weight:'bold'}, formatter:v=>fmtVal(v), clip:false}
+  }));
+  dsIdx.push({ label:'Baseline Jan = 100', data:MONTHS.map(()=>100), borderColor:'#D1D5DB', borderWidth:1.2, borderDash:[4,4], pointRadius:0, fill:false });
+  mkChart('cmpIndexChart', {
+    type:'line', data:{ labels:MONTHS, datasets: dsIdx },
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:16,bottom:6}},
+      plugins:{ title:{display:true, text:'Indeks Pertumbuhan Headcount (Jan-26 = 100)', font:{size:13,weight:'600'}}, legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}} },
+      scales:{ y:{ grid:{color:'#F1F5F9'} }, x:{grid:{display:false}} } }
+  });
+
+  const i = currentMonthIdx;
+  const mA = coMetrics('ASL',i), mD = coMetrics('DMS',i), mT = coMetrics('TAB',i);
+  document.getElementById('cmpInsight').innerHTML = `<b>Insight:</b> Skala tidak sama dengan risiko \u2014 turnover rate ASL rata-rata <b>${pctID(mA.avgRate)}%</b>/bulan (vs TAB ${pctID(mT.avgRate)}% dan DMS ${pctID(mD.avgRate)}%), dikombinasikan dengan ${pctID(mA.pctTenure6)}% karyawan bermasa kerja \u2264 6 bulan: pola <i>early attrition</i> yang butuh intervensi onboarding & retensi, bukan sekadar percepatan hiring. Sebaliknya DMS hampir tanpa terminasi dan 100% organik \u2014 tantangannya adalah jenjang karier, bukan retensi.`;
+}
+
+function traitChips(coKey){
+  const i = currentMonthIdx;
+  const m = coMetrics(coKey, i);
+  const chips = [];
+  if(m.avgRate > TURNOVER_TARGET*PARAMS.hiMult) chips.push({c:'c-bad', t:`Turnover tinggi (avg ${pctID(m.avgRate)}%/bln)`});
+  else if(m.avgRate <= PARAMS.lowRate) chips.push({c:'c-good', t:`Turnover rendah (avg ${pctID(m.avgRate)}%/bln)`});
+  if(m.pctTenure6 >= PARAMS.tenure6Th) chips.push({c:'c-warn', t:`${pctID(m.pctTenure6)}% masa kerja \u2264 6 bln`});
+  if(m.pctMitra >= PARAMS.mitraTh) chips.push({c:'c-navy', t:`${pctID(m.pctMitra)}% Mitra`});
+  if(m.pctMitra === 0) chips.push({c:'c-good', t:'100% Organik'});
+  if(m.growth6 >= PARAMS.growthTh) chips.push({c:'c-good', t:`Tumbuh ${pct(m.growth6)} sejak Jan`});
+  else if(m.growth6 <= 0) chips.push({c:'c-warn', t:`Headcount ${pct(m.growth6)} sejak Jan`});
+  return chips;
+}
+
+function renderTraitCards(){
+  const notes = {
+    TAB: 'Operasi last-mile berskala besar dengan dominasi tenaga Mitra dan konsentrasi wilayah Jabodetabek \u2014 fokus pengelolaan pada volume dan sebaran.',
+    ASL: 'Profil tenaga kerja muda dengan masa kerja pendek dan turnover di atas rata-rata grup \u2014 prioritas pada retensi dini dan penguatan onboarding.',
+    DMS: 'Struktur paling stabil: sepenuhnya organik dengan dominasi level Leader dan tingkat terminasi sangat rendah \u2014 fokus pengembangan pada jenjang karier.'
+  };
+  document.getElementById('cmpTraitCards').innerHTML = ['TAB','ASL','DMS'].map(co=>{
+    const chips = traitChips(co);
+    return `<div class="side-card">
+      <h4 style="margin:0 0 4px;font-size:14px;color:var(--ink);"><span class="co-dot" style="background:${CO_COLORS[co]};"></span>${co}</h4>
+      <div style="font-size:12.5px;color:var(--sub);line-height:1.5;">${notes[co]}</div>
+      <div class="chips">${chips.map(ch=>`<span class="chip ${ch.c}">${ch.t}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCompare(){
+  renderCompareTable();
+  renderCompareCharts();
+  renderTraitCards();
+}
+
+/* ===================== TAB 3-5: COMPANY SECTIONS ===================== */
+const COMPANIES = [
+  {key:'TAB', color:BMAGENTA,   subtitle:'Kontributor utama TAB Group — mayoritas operasional last-mile & regional.'},
+  {key:'ASL', color:BBLUE, subtitle:'Unit e-fulfillment & warehouse — skala lebih kecil, fokus operasional spesifik.'},
+  {key:'DMS', color:BMAROON, subtitle:'Unit terkecil di TAB Group — profil tenaga kerja paling terkonsentrasi.'}
+];
+
+function renderCompanyKPI(co){
+  const i = currentMonthIdx;
+  const s = DATA.summary[i];
+  const prev = i>0 ? DATA.summary[i-1] : null;
+  const t = DATA.turnover[i];
+  const hc = s[co.key];
+  const prevHc = prev ? prev[co.key] : null;
+  const growth = prevHc ? ((hc-prevHc)/prevHc*100) : 0;
+  const netGrowth = prevHc ? (hc-prevHc) : 0;
+  const term = t.ByCompany[co.key] || 0;
+  const turnoverRate = hc ? (term/hc*100) : 0;
+  const cp = COMPANY_PROFILE[co.key][i];
+  const organik = cp.StatusOM['ORGANIK']||0, mitra = cp.StatusOM['MITRA']||0;
+  const omTotal = organik+mitra || 1;
+  const groupShare = hc/s.TotalHeadcount*100;
+  const k = co.key.toLowerCase();
+
+  const hcSeries = COMPANY_PROFILE[co.key].map(x=>x.Headcount);
+  const rateSeries = DATA.turnover.map((tt,idx)=> (tt.ByCompany[co.key]||0)/COMPANY_PROFILE[co.key][idx].Headcount*100);
+
+  const cards = [
+    {label:'Total Headcount', en:'Company headcount', value: fmt(hc), spark:{id:k+'_sp_hc', series:hcSeries, color:co.color}},
+    {label:'Growth MoM', en:'Month-on-month', value: prevHc ? pct(growth) : '—', dir: growth>=0.05?'up':(growth<=-0.05?'down':'flat')},
+    {label:'Net Growth', en:'Headcount change', value: (netGrowth>=0?'+':'')+fmt(netGrowth)+' orang'},
+    {label:'Organik : Mitra', en:'Composition', value: pctID(organik/omTotal*100)+'% : '+pctID(mitra/omTotal*100)+'%'},
+    {label:'Total Termination', en:'Leavers', value: fmt(term)},
+    {label:'Turnover Rate', en:'vs monthly target', value: pctID(turnoverRate)+'%', alert: turnoverRate>TURNOVER_TARGET,
+      ctx:`Target \u2264 ${pctID(TURNOVER_TARGET)}%`, spark:{id:k+'_sp_rate', series:rateSeries, color:turnoverRate>TURNOVER_TARGET?'#DC2626':co.color, kind:'pct'}}
+  ];
+  const el = document.getElementById(k+'_kpi');
+  el.innerHTML = cards.map(c=>`
+    <div class="kpi">
+      <div class="label">${c.label}</div>
+      <div class="en">${c.en||''}</div>
+      <div class="value${c.alert?' alert':''}">${c.value}</div>
+      ${c.dir ? `<div class="delta ${c.dir}">${c.dir==='up'?'▲':(c.dir==='down'?'▼':'—')}</div>` : ''}
+      ${c.ctx? `<div class="ctx">${c.ctx}</div>`:''}
+      ${c.spark? `<div class="spark"><canvas id="${c.spark.id}"></canvas></div>`:''}
+    </div>`).join('');
+  cards.forEach(c=>{ if(c.spark) mkSpark(c.spark.id, c.spark.series, c.spark.color, i, c.spark.kind); });
+
+  document.getElementById(k+'_chips').innerHTML =
+    traitChips(co.key).map(ch=>`<span class="chip ${ch.c}">${ch.t}</span>`).join('');
+
+  const growDesc = growth>0.05 ? "tumbuh" : (growth<-0.05 ? "menurun" : "relatif stabil");
+  const extra = [];
+  if(turnoverRate>TURNOVER_TARGET) extra.push(`turnover rate <b>${pctID(turnoverRate)}%</b> masih di atas target ${pctID(TURNOVER_TARGET)}% (${fmt(term)} terminasi)`);
+  else extra.push(`turnover rate terkendali di <b>${pctID(turnoverRate)}%</b> (${fmt(term)} terminasi)`);
+  const tenure6 = (cp.Tenure['\u2264 6 Bulan']||0)/hc*100;
+  if(tenure6>=PARAMS.tenure6Th) extra.push(`dan <b>${pctID(tenure6)}%</b> tenaga kerjanya masih bermasa kerja \u2264 6 bulan`);
+  const narrEl = document.getElementById(k+'_narrative');
+  narrEl.innerHTML = `<b>${s.Month}:</b> ${co.key} tercatat <b>${fmt(hc)}</b> orang (setara <b>${pctID(groupShare)}%</b> headcount grup), ${growDesc}${prevHc? ' '+pct(growth):''} dibanding bulan lalu dengan komposisi ${pctID(mitra/omTotal*100)}% Mitra. Bulan ini ${extra.join(', ')}.`;
+}
+
+function renderCompanyTrends(co){
+  const hcData = DATA.summary.map(s=>s[co.key]);
+  const termData = DATA.turnover.map(t=>t.ByCompany[co.key]||0);
+  const rateData = DATA.turnover.map((t,i)=> (t.ByCompany[co.key]||0)/COMPANY_PROFILE[co.key][i].Headcount*100);
+  const k = co.key.toLowerCase();
+
+  mkChart(k+'_growthChart', {
+    type:'line',
+    data:{ labels: MONTHS, datasets:[{ label:'Headcount', data:hcData, borderColor:co.color, backgroundColor:co.color, borderWidth:2, tension:.3, pointRadius:4, fill:false,
+      datalabels:{display:true, color:co.color, font:{size:9,weight:'bold'}, anchor:'end', align:'top', formatter:v=>fmt(v)} }] },
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:16}},
+      plugins:{ title:{display:true, text:'Trend Headcount '+co.key+' (Jan–Jun 2026)', font:{size:13,weight:'600'}}, legend:{display:false} },
+      scales:{ x:{grid:{display:false}}, y:{grid:{color:'#F1F5F9'}} } }
+  });
+
+  mkChart(k+'_turnoverChart', {
+    data:{ labels: MONTHS, datasets:[
+      { type:'bar', label:'Termination', data:termData, backgroundColor:co.color+'CC', borderRadius:4, yAxisID:'y',
+        datalabels:{display:true, color:co.color, anchor:'end', align:'top', font:{size:9,weight:'bold'}, formatter:v=>fmt(v)} },
+      { type:'line', label:'Turnover Rate (%)', unit:'%', data:rateData, borderColor:'#DC2626', borderWidth:2, pointRadius:3.5, pointBackgroundColor:'#DC2626', tension:.3, yAxisID:'y2', datalabels:{display:false} },
+      { type:'line', label:`Target (${pctID(TURNOVER_TARGET)}%)`, data:MONTHS.map(()=>TURNOVER_TARGET), unit:'%', borderColor:'#9CA3AF', borderWidth:1.2, borderDash:[6,5], pointRadius:0, yAxisID:'y2', datalabels:{display:false} }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:16}},
+      plugins:{ title:{display:true, text:'Terminasi & Turnover Rate '+co.key+' (Jan–Jun 2026)', font:{size:13,weight:'600'}}, legend:{position:'bottom', labels:{boxWidth:10,font:{size:9.5}}} },
+      scales:{ x:{grid:{display:false}}, y:{grid:{color:'#F1F5F9'}, title:{display:true, text:'Kasus', font:{size:10}}},
+        y2:{position:'right', grid:{display:false}, ticks:{callback:v=>fmtVal(v)+'%'}, title:{display:true, text:'Rate', font:{size:10}}} } }
+  });
+
+  const hcDelta = hcData[hcData.length-1]-hcData[0];
+  const termFirst = termData[0], termLast = termData[termData.length-1];
+  const rateAvg = rateData.reduce((a,b)=>a+b,0)/rateData.length;
+  document.getElementById(k+'_trendInsight').innerHTML = `<b>Insight:</b> Headcount ${co.key} ${hcDelta>=0?'bertambah':'berkurang'} ${fmt(Math.abs(hcDelta))} orang sejak Januari, terminasi bulanan ${termLast>=termFirst?'naik':'turun'} dari ${fmt(termFirst)} ke ${fmt(termLast)} kasus, dengan rata-rata turnover rate <b>${pctID(rateAvg)}%</b>/bulan ${rateAvg>TURNOVER_TARGET?'\u2014 di atas target '+pctID(TURNOVER_TARGET)+'%':'\u2014 di bawah target '+pctID(TURNOVER_TARGET)+'%'}.`;
+}
+
+function renderCompanyProfile(co){
+  const cp = COMPANY_PROFILE[co.key][currentMonthIdx];
+  const k = co.key.toLowerCase();
+  const grid = document.getElementById(k+'_profileGrid');
+  const cfgs = [
+    {title:'Usia', obj:cp.AgeCat, order:['<25','25-30','31-40','>40'], id:co.key+'_ageMini'},
+    {title:'Gender', obj:cp.Gender, order:['MALE','FEMALE'], id:co.key+'_genderMini', doughnut:true},
+    {title:'Pendidikan', obj:cp.Education, order:['SMA/MA','DIPLOMA','S1','S2','S3','PROFESI'], id:co.key+'_eduMini'},
+    {title:'Masa Kerja', obj:cp.Tenure, order:['\u2264 6 Bulan','> 6 - 12 Bulan','> 12 Bulan - 2 Tahun','> 2 Tahun - 3 Tahun','> 3 Tahun'], id:co.key+'_tenureMini'},
+    {title:'Status Nikah', obj:cp.Marital, order:['MARRIED','SINGLE'], id:co.key+'_maritalMini', doughnut:true},
+  ];
+  grid.innerHTML = cfgs.map(c=>`<div class="profile-card"><h4>${c.title}</h4><div class="mini-chart"><canvas id="${c.id}"></canvas></div></div>`).join('');
+  cfgs.forEach(c=>{
+    const labels = c.order.filter(kk=>kk in c.obj);
+    const vals = labels.map(kk=>c.obj[kk]);
+    const palette = [co.color, BBLUE, BMAROON, BPINK, '#64748B', '#FFCB05'];
+    const miniTot = vals.reduce((a,b)=>a+b,0) || 1;
+    mkChart(c.id, {
+      type: c.doughnut? 'doughnut':'bar',
+      data:{ labels, datasets:[{ data: vals,
+        backgroundColor: c.doughnut? palette.slice(0,labels.length) : co.color,
+        borderRadius: c.doughnut? 0:4,
+        datalabels: c.doughnut
+          ? {display:true, color:'#fff', font:{size:9,weight:'bold'}, formatter:v=> v/miniTot >= .06 ? fmt(v) : '', anchor:'center', align:'center'}
+          : {display:true, color:'#374151', font:{size:8.5,weight:'bold'}, anchor:'end', align:'end', offset:1, formatter:v=>fmt(v), clip:false} }]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        indexAxis: c.doughnut? undefined:'y',
+        layout: c.doughnut? {} : {padding:{right:30}},
+        plugins:{ legend:{ display:c.doughnut, position:'bottom', labels:{boxWidth:8,font:{size:9}} } },
+        scales: c.doughnut? {} : { x:{grid:{color:'#F1F5F9'}, grace:'8%'}, y:{grid:{display:false}, ticks:{font:{size:10}}} } }
+    });
+  });
+}
+
+/* bungkus label panjang menjadi beberapa baris agar tidak terpotong */
+function wrapTick(label, max){
+  max = max || 24;
+  const words = String(label).split(' ');
+  const lines = []; let cur = '';
+  words.forEach(w=>{
+    if((cur + ' ' + w).trim().length > max){ if(cur) lines.push(cur); cur = w; }
+    else cur = (cur + ' ' + w).trim();
+  });
+  if(cur) lines.push(cur);
+  return lines;
+}
+
+function topEntries(obj, n){
+  const entries = Object.entries(obj).filter(([kk])=>kk!=='LAINNYA').sort((a,b)=>b[1]-a[1]);
+  const lain = obj['LAINNYA'];
+  const top = entries.slice(0,n);
+  if(lain) top.push(['LAINNYA', lain]);
+  return top;
+}
+
+function renderCompanyOrg(co){
+  const cp = COMPANY_PROFILE[co.key][currentMonthIdx];
+  const k = co.key.toLowerCase();
+
+  const levelEntries = Object.entries(cp.Level).sort((a,b)=>b[1]-a[1]);
+  mkChart(k+'_levelChart', {
+    type:'bar',
+    data:{ labels: levelEntries.map(e=>e[0]), datasets:[{ data: levelEntries.map(e=>e[1]), backgroundColor:co.color, borderRadius:4,
+      datalabels:{display:true, color:'#374151', font:{size:9,weight:'bold'}, anchor:'end', align:'end', offset:1, formatter:v=>fmt(v), clip:false} }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, layout:{padding:{right:34}},
+      plugins:{ title:{display:true, text:'Distribusi Level Jabatan', font:{size:13,weight:'600'}}, legend:{display:false} },
+      scales:{ x:{grid:{color:'#F1F5F9'}, grace:'8%'}, y:{grid:{display:false}, ticks:{autoSkip:false}} } }
+  });
+
+  const deptEntries = topEntries(cp.Departemen, 7);
+  mkChart(k+'_deptChart', {
+    type:'bar',
+    data:{ labels: deptEntries.map(e=>e[0]), datasets:[{ data: deptEntries.map(e=>e[1]), backgroundColor:BMAROON, borderRadius:4,
+      datalabels:{display:true, color:'#374151', font:{size:9,weight:'bold'}, anchor:'end', align:'end', offset:1, formatter:v=>fmt(v), clip:false} }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, layout:{padding:{right:34}},
+      plugins:{ title:{display:true, text:'Top Departemen', font:{size:13,weight:'600'}}, legend:{display:false} },
+      scales:{ x:{grid:{color:'#F1F5F9'}, grace:'8%'}, y:{grid:{display:false}, ticks:{font:{size:9}, autoSkip:false, callback:function(v){ return wrapTick(this.getLabelForValue(v), 22); }}} } }
+  });
+
+  const jabEntries = topEntries(cp.Jabatan, 7);
+  mkChart(k+'_jabatanChart', {
+    type:'bar',
+    data:{ labels: jabEntries.map(e=>e[0]), datasets:[{ data: jabEntries.map(e=>e[1]), backgroundColor:BPINK, borderRadius:4,
+      datalabels:{display:true, color:'#374151', font:{size:9,weight:'bold'}, anchor:'end', align:'end', offset:1, formatter:v=>fmt(v), clip:false} }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, layout:{padding:{right:34}},
+      plugins:{ title:{display:true, text:'Top Jabatan', font:{size:13,weight:'600'}}, legend:{display:false} },
+      scales:{ x:{grid:{color:'#F1F5F9'}, grace:'8%'}, y:{grid:{display:false}, ticks:{font:{size:9}, autoSkip:false, callback:function(v){ return wrapTick(this.getLabelForValue(v), 22); }}} } }
+  });
+
+  const total = levelEntries.reduce((a,b)=>a+b[1],0) || 1;
+  const topDept = deptEntries[0], topJab = jabEntries[0];
+  const topLevel = levelEntries[0];
+  document.getElementById(k+'_orgInsight').innerHTML = `<b>Insight:</b> ${pctID(topLevel[1]/total*100)}% karyawan ${co.key} berada di level ${topLevel[0]} (${fmt(topLevel[1])} orang). Departemen <b>${topDept[0]}</b> paling dominan (${fmt(topDept[1])} orang \u00b7 ${pctID(topDept[1]/total*100)}%), dengan jabatan terbanyak <b>${topJab[0]}</b> (${fmt(topJab[1])} orang).`;
+}
+
+function renderCompanyRegion(co){
+  const cp = COMPANY_PROFILE[co.key][currentMonthIdx];
+  const k = co.key.toLowerCase();
+  const entries = Object.entries(cp.Region).sort((a,b)=>b[1]-a[1]);
+  mkChart(k+'_regionChart', {
+    type:'bar',
+    data:{ labels: entries.map(e=>e[0]), datasets:[{ label:'Headcount', data: entries.map(e=>e[1]), backgroundColor:co.color, borderRadius:4,
+      datalabels:{display:true, color:'#374151', font:{size:9.5,weight:'bold'}, anchor:'end', align:'end', offset:1, formatter:v=>fmt(v), clip:false} }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, layout:{padding:{right:40}},
+      plugins:{ title:{display:true, text:'Sebaran Headcount per Region — '+co.key, font:{size:13,weight:'600'}}, legend:{display:false} },
+      scales:{ x:{grid:{color:'#F1F5F9'}, grace:'8%'}, y:{grid:{display:false}} } }
+  });
+}
+
+function renderCompanySection(co){
+  renderCompanyKPI(co);
+  renderCompanyTrends(co);
+  renderCompanyProfile(co);
+  renderCompanyOrg(co);
+  renderCompanyRegion(co);
+}
+
+/* ===================== TAB 6: STATUS & JABATAN ===================== */
+function renderStatusTab(){
+  const groupSeries = cat => MONTHS.map((_,i)=> ['TAB','ASL','DMS'].reduce((a,co)=>a+LEGACY.statusPegawai[co][cat][i],0));
+  const tetap = groupSeries('TETAP'), kontrak = groupSeries('KONTRAK'), mitra = groupSeries('MITRA');
+  const gTot = MONTHS.map((_,i)=>tetap[i]+kontrak[i]+mitra[i]);
+  mkChart('statusMixChart', {
+    type:'bar',
+    data:{ labels: MONTHS, datasets:[
+      {label:'Tetap', data:tetap, backgroundColor:BMAGENTA, stack:'a',
+        datalabels:{display:true, color:'#fff', font:{size:9,weight:'bold'}, formatter:v=>fmt(v), anchor:'center', align:'center', clip:false}},
+      {label:'Kontrak', data:kontrak, backgroundColor:BBLUE, stack:'a',
+        datalabels:{display:true, color:'#fff', font:{size:8.5,weight:'bold'}, formatter:v=>fmt(v), anchor:'center', align:'center', clip:false}},
+      {label:'Mitra', data:mitra, backgroundColor:BPINK, stack:'a',
+        datalabels:{display:true, color:'#831843', font:{size:12,weight:'bold'}, formatter:v=>fmt(v), anchor:'center', align:'center'}}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ title:{display:true, text:'Komposisi Status Pegawai Grup (Tetap / Kontrak / Mitra)', font:{size:13,weight:'600'}}, legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}},
+        tooltip:{callbacks:{label:(c)=>` ${c.dataset.label}: ${fmt(c.raw)} orang (${pctID(c.raw/gTot[c.dataIndex]*100)}%)`}} },
+      scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, grid:{color:'#F1F5F9'}} } }
+  });
+
+  const kjKeys = Object.keys(LEGACY.kjAllPT);
+  const kjPalette = [BMAGENTA, BBLUE, BMAROON, BPINK, '#64748B'];
+  const kjTotM = MONTHS.map((_,mi)=>kjKeys.reduce((a,kk)=>a+LEGACY.kjAllPT[kk][mi],0));
+  mkChart('kjChart', {
+    type:'bar',
+    data:{ labels: MONTHS, datasets: kjKeys.map((kk,idx)=>{
+      const big = (kk==='KJ 2'||kk==='KJ 4');
+      const tiny = (kk==='KJ 1'||kk==='KJ 5 Up');
+      return { label:kk, data:LEGACY.kjAllPT[kk], backgroundColor:kjPalette[idx], stack:'a',
+        datalabels:{ display: tiny ? 'auto' : true,
+          color: kk==='KJ 4' ? '#831843' : '#fff',
+          font:{size: big?11:8.5, weight:'bold'}, formatter:v=>fmt(v),
+          anchor:'center', align:'center', clip:false } };
+    }) },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ title:{display:true, text:'Kelompok Jabatan Karyawan Organik All PT', font:{size:13,weight:'600'}}, legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}},
+        tooltip:{callbacks:{label:(c)=>` ${c.dataset.label}: ${fmt(c.raw)} orang (${pctID(c.raw/kjTotM[c.dataIndex]*100)}% organik)`}} },
+      scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, grid:{color:'#F1F5F9'}} } }
+  });
+
+  const i = currentMonthIdx;
+  const orgNow = tetap[i]+kontrak[i];
+  const kontrakShare = kontrak[i]/orgNow*100;
+  const dmsK = LEGACY.statusPegawai.DMS.KONTRAK[i];
+  document.getElementById('statusInsight').innerHTML = `<b>Insight:</b> Dari ${fmt(orgNow)} karyawan organik pada ${MONTHS[i]}, <b>${pctID(kontrakShare)}%</b> berstatus Kontrak \u2014 termasuk seluruh ${fmt(dmsK)} karyawan DMS yang 100% kontrak. Komposisi KJ organik didominasi <b>KJ 2 (Leader)</b>, konsisten dengan model operasi yang menempatkan organik sebagai lapisan supervisi atas tenaga Mitra.`;
+
+  /* tabel status per company + selisih MoM */
+  let html = `<tr><th class="lft">Company</th><th class="lft">Status</th>${MONTHS.map(m=>`<th>${m}</th>`).join('')}</tr>`;
+  const cats = ['MITRA','KONTRAK','TETAP'];
+  ['TAB','ASL','DMS'].forEach(co=>{
+    const sp = LEGACY.statusPegawai[co];
+    cats.forEach((cat,ci)=>{
+      html += `<tr>${ci===0?`<td class="lft" rowspan="4" style="vertical-align:top;color:${CO_COLORS[co]};font-weight:800;">${co}</td>`:''}<td class="lft">${cat}</td>${sp[cat].map(v=>`<td>${fmt(v)}</td>`).join('')}</tr>`;
+    });
+    const tot = MONTHS.map((_,mi)=>cats.reduce((a,c)=>a+sp[c][mi],0));
+    html += `<tr class="subhead"><td class="lft">Total ${co}</td>${tot.map(v=>`<td>${fmt(v)}</td>`).join('')}</tr>`;
+  });
+  const gMitra = MONTHS.map((_,mi)=>['TAB','ASL','DMS'].reduce((a,co)=>a+LEGACY.statusPegawai[co].MITRA[mi],0));
+  const gKontrak = MONTHS.map((_,mi)=>['TAB','ASL','DMS'].reduce((a,co)=>a+LEGACY.statusPegawai[co].KONTRAK[mi],0));
+  const gTetap = MONTHS.map((_,mi)=>['TAB','ASL','DMS'].reduce((a,co)=>a+LEGACY.statusPegawai[co].TETAP[mi],0));
+  const gTotal = MONTHS.map((_,mi)=>gMitra[mi]+gKontrak[mi]+gTetap[mi]);
+  const gOrganik = MONTHS.map((_,mi)=>gKontrak[mi]+gTetap[mi]);
+  html += `<tr class="total"><td class="lft" colspan="2">Grand Total</td>${gTotal.map(v=>`<td>${fmt(v)}</td>`).join('')}</tr>`;
+  const selisih = arr => arr.map((v,mi)=> mi===0? null : v-arr[mi-1]);
+  const selRow = (label, arr) => `<tr><td class="lft" colspan="2" style="font-weight:600;color:var(--sub);">${label}</td>${selisih(arr).map(v=> v===null?`<td>\u2014</td>`:`<td class="${v>0?'pos':(v<0?'neg':'')}">${v>0?'+':''}${fmt(v)}</td>`).join('')}</tr>`;
+  html += selRow('Selisih Organik (MoM)', gOrganik);
+  html += selRow('Selisih Mitra (MoM)', gMitra);
+  html += selRow('Selisih Total (MoM)', gTotal);
+  document.getElementById('statusTable').innerHTML = html;
+
+  /* tabel KJ all PT */
+  let kjHtml = `<tr><th class="lft">Kelompok Jabatan</th>${MONTHS.map(m=>`<th>${m}</th>`).join('')}</tr>`;
+  kjKeys.forEach(kk=>{ kjHtml += `<tr><td class="lft">${kk}</td>${LEGACY.kjAllPT[kk].map(v=>`<td>${fmt(v)}</td>`).join('')}</tr>`; });
+  const kjTot = MONTHS.map((_,mi)=>kjKeys.reduce((a,kk)=>a+LEGACY.kjAllPT[kk][mi],0));
+  kjHtml += `<tr class="total"><td class="lft">Total Organik</td>${kjTot.map(v=>`<td>${fmt(v)}</td>`).join('')}</tr>`;
+  document.getElementById('kjTable').innerHTML = kjHtml;
+  document.getElementById('kjDefList').innerHTML = LEGACY.kjDef.map(d=>`<li><b>${d[0]}</b> — ${d[1]}</li>`).join('');
+
+  /* outsource & intern */
+  document.getElementById('outsourceBadge').textContent = 'Snapshot '+LEGACY.outsourceMonth;
+  let osHtml = `<tr><th class="lft">Company</th><th class="lft">Status</th><th>${LEGACY.outsourceMonth}</th></tr>`;
+  let osTot = 0;
+  LEGACY.outsourceSummary.forEach(r=>{ osTot += r[2]; osHtml += `<tr><td class="lft">${r[0]}</td><td class="lft">${r[1]}</td><td>${fmt(r[2])}</td></tr>`; });
+  osHtml += `<tr class="total"><td class="lft" colspan="2">Grand Total</td><td>${fmt(osTot)}</td></tr>`;
+  document.getElementById('outsourceSummaryTable').innerHTML = osHtml;
+
+  let odHtml = `<tr><th class="lft">Company</th><th class="lft">Divisi</th><th class="lft">Status</th><th>Qty</th></tr>`;
+  LEGACY.outsourceDetail.forEach(r=>{ odHtml += `<tr><td class="lft">${r[0]}</td><td class="lft">${r[1]}</td><td class="lft">${r[2]}</td><td>${fmt(r[3])}</td></tr>`; });
+  document.getElementById('outsourceDetailTable').innerHTML = odHtml;
+}
+
+/* ===================== TAB 7: TERMINASI ===================== */
+function renderTerminasiTab(){
+  const i = currentMonthIdx;
+  const t = DATA.turnover[i];
+  const prevT = i>0 ? DATA.turnover[i-1] : null;
+
+  const sigs = [];
+  if(prevT){
+    Object.keys(t.TopReason).filter(r=>!(r in prevT.TopReason)).forEach(r=>{
+      sigs.push({cls:'warn', ic:'!', txt:`<b>${r}</b> masuk top-3 alasan terminasi bulan ${t.Month} dengan ${fmt(t.TopReason[r])} kasus \u2014 tidak muncul di top-3 bulan sebelumnya.`});
+    });
+  }
+  const maxMonth = DATA.turnover.reduce((a,b)=>b.Termination>a.Termination?b:a);
+  sigs.push({cls:'info', ic:'i', txt:`Puncak terminasi Jan\u2013Jun terjadi pada <b>${maxMonth.Month}</b> (${fmt(maxMonth.Termination)} kasus), didominasi region Jabodetabek.`});
+  document.getElementById('termSignals').innerHTML = sigs.map(g=>`<div class="signal ${g.cls}"><span class="ic">${g.ic}</span><span>${g.txt}</span></div>`).join('');
+
+  mkChart('termByCompanyChart', {
+    type:'bar',
+    data:{ labels: MONTHS, datasets: ['ASL','DMS','TAB'].map(co=>({
+      label:co, data: DATA.turnover.map(tt=>tt.ByCompany[co]||0), backgroundColor:CO_COLORS[co], stack:'a',
+      datalabels:{ display: co==='TAB' ? true : 'auto', color:'#fff',
+        font:{size: co==='TAB'?11:8, weight:'bold'}, formatter:v=>fmt(v),
+        anchor:'center', align:'center', clip:false }
+    })) },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ title:{display:true, text:'Terminasi per Company per Bulan (ASL & DMS di dasar bar)', font:{size:13,weight:'600'}}, legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}},
+        tooltip:{callbacks:{label:(c)=>` ${c.dataset.label}: ${fmt(c.raw)} kasus`}} },
+      scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, grid:{color:'#F1F5F9'}} } }
+  });
+
+  /* tren alasan (top-3 per bulan) */
+  const reasons = [];
+  DATA.turnover.forEach(tt=>Object.keys(tt.TopReason).forEach(r=>{ if(!reasons.includes(r)) reasons.push(r); }));
+  const rPalette = [BMAGENTA, BBLUE, BMAROON, '#DC2626', '#64748B', '#16A34A'];
+  mkChart('reasonTrendChart', {
+    type:'line',
+    data:{ labels: MONTHS, datasets: reasons.map((r,idx)=>({
+      label:r, data: DATA.turnover.map(tt=> (r in tt.TopReason)? tt.TopReason[r] : null),
+      borderColor:rPalette[idx%rPalette.length], backgroundColor:rPalette[idx%rPalette.length],
+      borderWidth:2, tension:.25, pointRadius:4, spanGaps:false, fill:false
+    })) },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ title:{display:true, text:'Tren Alasan Terminasi (Top-3 per bulan, level grup)', font:{size:13,weight:'600'}}, legend:{position:'bottom', labels:{boxWidth:10,font:{size:9.5}}} },
+      scales:{ x:{grid:{display:false}}, y:{grid:{color:'#F1F5F9'}} } }
+  });
+
+  const topNow = Object.entries(t.TopReason).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('termInsight').innerHTML = `<b>Insight:</b> Sepanjang Jan\u2013Jun, <b>Mangkir</b> konsisten menjadi alasan terminasi terbesar \u2014 indikator persoalan kedisiplinan/engagement tenaga Mitra, bukan kompetisi pasar kerja. Pada ${t.Month}, tiga alasan teratas: ${topNow.map(e=>`${e[0]} (${fmt(e[1])})`).join(', ')}. Garis putus di chart menandakan alasan tersebut keluar dari top-3 pada bulan itu (data alasan direkam top-3 per bulan).`;
+
+  /* heatmap region x bulan */
+  const regions = [];
+  DATA.turnover.forEach(tt=>Object.keys(tt.ByRegion).forEach(r=>{ if(!regions.includes(r)) regions.push(r); }));
+  const totals = regions.map(r=> DATA.turnover.reduce((a,tt)=>a+(tt.ByRegion[r]||0),0));
+  const order = regions.map((r,idx)=>({r, tot:totals[idx]})).sort((a,b)=>b.tot-a.tot);
+  const maxCell = Math.max(...DATA.turnover.flatMap(tt=>Object.values(tt.ByRegion)));
+  const shade = v => {
+    if(!v) return 'background:#FBFCFE;color:#B9C2CE;';
+    const a = Math.min(1, 0.08 + 0.92*(v/maxCell));
+    const txt = a>0.55 ? '#fff' : '#831843';
+    return `background:rgba(237,6,119,${a.toFixed(2)});color:${txt};`;
+  };
+  let hHtml = `<tr><th class="lft">Region</th>${MONTHS.map(m=>`<th style="text-align:center;">${m}</th>`).join('')}<th style="text-align:center;">Total</th></tr>`;
+  order.forEach(o=>{
+    hHtml += `<tr><td class="lft">${o.r}</td>${DATA.turnover.map(tt=>{
+      const v = tt.ByRegion[o.r]||0;
+      return `<td class="cell" style="${shade(v)}">${v?fmt(v):'\u2013'}</td>`;
+    }).join('')}<td class="cell" style="background:var(--secondary-soft);color:var(--secondary);">${fmt(o.tot)}</td></tr>`;
+  });
+  const colTot = DATA.turnover.map(tt=>Object.values(tt.ByRegion).reduce((a,b)=>a+b,0));
+  hHtml += `<tr class="total"><td class="lft">Total</td>${colTot.map(v=>`<td style="text-align:center;">${fmt(v)}</td>`).join('')}<td style="text-align:center;">${fmt(colTot.reduce((a,b)=>a+b,0))}</td></tr>`;
+  document.getElementById('termHeatmap').innerHTML = hHtml;
+
+  /* organik snapshot */
+  document.getElementById('termOrganikBadge').textContent = 'Snapshot '+LEGACY.termOrganikMonth;
+  let kHtml = `<tr><th class="lft">Kategori</th><th>Qty</th><th>Basis</th><th>Turnover</th></tr>`;
+  LEGACY.termOrganikKategori.forEach(r=>{ kHtml += `<tr><td class="lft">${r[0]}</td><td>${fmt(r[1])}</td><td>${fmt(r[2])}</td><td>${r[3]}</td></tr>`; });
+  document.getElementById('termOrgKategoriTable').innerHTML = kHtml;
+
+  const aTot = LEGACY.termOrganikAlasan.reduce((a,r)=>a+r[1],0);
+  let aHtml = `<tr><th class="lft">Alasan Terminasi Organik</th><th>Qty</th><th>%</th></tr>`;
+  LEGACY.termOrganikAlasan.forEach(r=>{ aHtml += `<tr><td class="lft">${r[0]}</td><td>${fmt(r[1])}</td><td>${pctID(r[1]/aTot*100)}%</td></tr>`; });
+  aHtml += `<tr class="total"><td class="lft">Grand Total</td><td>${fmt(aTot)}</td><td>100%</td></tr>`;
+  document.getElementById('termOrgAlasanTable').innerHTML = aHtml;
+}
+
+/* ===================== TAB 8: TAKEAWAY ===================== */
+function renderTakeaway(){
+  const i = currentMonthIdx;
+  const s = DATA.summary[i];
+  const prev = i>0? DATA.summary[i-1]:null;
+  const t = DATA.turnover[i];
+  const hcDelta = prev? ((s.TotalHeadcount-prev.TotalHeadcount)/prev.TotalHeadcount*100):0;
+  const regEntries = Object.entries(t.ByRegion).sort((a,b)=>b[1]-a[1]);
+  const growthRates = COMPANIES.map(co=>{
+    const hc = DATA.summary.map(x=>x[co.key]);
+    return {key:co.key, g: (hc[hc.length-1]-hc[0])/hc[0]*100};
+  }).sort((a,b)=>b.g-a.g);
+  const mASL = coMetrics('ASL', i);
+  const newReasons = i>0 ? Object.keys(t.TopReason).filter(r=>!(r in DATA.turnover[i-1].TopReason)) : [];
+  const net = s.Hiring - t.Termination;
+
+  const points = [
+    `Headcount ${s.Month} <b>${hcDelta>=0?'meningkat':'menurun'} ${pctID(Math.abs(hcDelta))}%</b> dibanding bulan sebelumnya, mencapai ${fmt(s.TotalHeadcount)} orang di seluruh TAB Group dengan net movement ${net>=0?'+':''}${fmt(net)} orang (hiring ${fmt(s.Hiring)} vs terminasi ${fmt(t.Termination)}).`,
+    `Pertumbuhan didominasi tenaga <b>${(s.Mitra/s.TotalHeadcount)>0.85?'Mitra':'Organik'}</b> (${pctID(s.Mitra/s.TotalHeadcount*100)}% dari total headcount); dari sisi status, karyawan organik terbagi ${fmt(s.Organik)} orang antara Tetap dan Kontrak (detail di tab Status &amp; Jabatan).`,
+    `Turnover rate grup berada di <b>${pctID(t.Termination/s.TotalHeadcount*100)}%</b> dengan alasan utama "<b>${Object.entries(t.TopReason).sort((a,b)=>b[1]-a[1])[0][0]}</b>"${newReasons.length? ` \u2014 dan alasan baru <b>${newReasons.join(', ')}</b> masuk top-3 bulan ini, perlu investigasi khusus`:''}.`,
+    `Region <b>${regEntries[0][0]}</b> memerlukan perhatian lebih \u2014 kontributor terminasi terbesar bulan ini (${fmt(regEntries[0][1])} kasus); pola per region tersaji di heatmap tab Terminasi.`,
+    `Secara relatif Jan\u2013Jun 2026, <b>${growthRates[0].key}</b> tumbuh paling cepat (${pct(growthRates[0].g)}), sementara <b>${growthRates[growthRates.length-1].key}</b> paling lambat (${pct(growthRates[growthRates.length-1].g)}).`,
+    `<b>ASL adalah titik risiko retensi grup</b>: rata-rata turnover ${pctID(mASL.avgRate)}%/bulan dan ${pctID(mASL.pctTenure6)}% karyawan bermasa kerja \u2264 6 bulan \u2014 membutuhkan intervensi onboarding &amp; retensi yang berbeda dari TAB dan DMS, bukan pendekatan satu ukuran untuk semua.`
+  ];
+  document.getElementById('takeawayList').innerHTML = points.map((pt,idx)=>`<li><span class="num">${String(idx+1).padStart(2,'0')}</span><span>${pt}</span></li>`).join('');
+}
+
+/* ===================== TAB 9: APPENDIX ===================== */
+function renderAppendix(){
+  document.getElementById('metaTarget').textContent = pctID(TURNOVER_TARGET);
+  let html = `<tr><th class="lft">Company</th><th class="lft">Kelompok</th>${MONTHS.map(m=>`<th>${m}</th>`).join('')}</tr>`;
+  ['TAB','ASL','DMS'].forEach(co=>{
+    const rows = LEGACY.dlidl.filter(r=>r.co===co);
+    rows.forEach((r,ri)=>{
+      html += `<tr>${ri===0?`<td class="lft" rowspan="${rows.length}" style="vertical-align:top;color:${CO_COLORS[co]};font-weight:800;">${co}</td>`:''}<td class="lft">${r.k}</td>${r.v.map(v=>`<td>${fmt(v)}</td>`).join('')}</tr>`;
+    });
+  });
+  const gt = MONTHS.map((_,mi)=> LEGACY.dlidl.reduce((a,r)=>a+r.v[mi],0));
+  html += `<tr class="total"><td class="lft" colspan="2">Grand Total</td>${gt.map(v=>`<td>${fmt(v)}</td>`).join('')}</tr>`;
+  document.getElementById('dlidlTable').innerHTML = html;
+  document.getElementById('dlidlDefList').innerHTML = LEGACY.dlidlDef.map(d=>`<li><b>${d[0]}</b> — ${d[1]}</li>`).join('');
+
+  let kjHtml = `<tr><th class="lft">Company</th><th class="lft">Kelompok Jabatan</th>${MONTHS.map(m=>`<th>${m}</th>`).join('')}</tr>`;
+  ['TAB','ASL','DMS'].forEach(co=>{
+    const kj = LEGACY.kjCompany[co];
+    const keys = Object.keys(kj);
+    keys.forEach((kk,ki)=>{
+      kjHtml += `<tr>${ki===0?`<td class="lft" rowspan="${keys.length+1}" style="vertical-align:top;color:${CO_COLORS[co]};font-weight:800;">${co}</td>`:''}<td class="lft">${kk}</td>${kj[kk].map(v=>`<td>${fmt(v)}</td>`).join('')}</tr>`;
+    });
+    const tot = MONTHS.map((_,mi)=>keys.reduce((a,kk)=>a+kj[kk][mi],0));
+    kjHtml += `<tr class="subhead"><td class="lft">Total ${co}</td>${tot.map(v=>`<td>${fmt(v)}</td>`).join('')}</tr>`;
+  });
+  document.getElementById('kjCompanyTable').innerHTML = kjHtml;
+}
+
+/* ===================== SINGLE-SCROLL ENGINE (HCaja template) ===================== */
+function renderHero(){
+  document.getElementById('logoTop').src = LOGO_HCAJA;
+  document.getElementById('logoHero').src = LOGO_HCAJA;
+  const i = currentMonthIdx;
+  const s = DATA.summary[i];
+  const prev = i>0 ? DATA.summary[i-1] : null;
+  const t = DATA.turnover[i];
+  const rate = t.Termination/s.TotalHeadcount*100;
+  const growth = prev ? (s.TotalHeadcount-prev.TotalHeadcount)/prev.TotalHeadcount*100 : 0;
+  document.getElementById('heroPeriod').textContent = 'Periode ' + s.Month + ' · TAB Group (TAB · ASL · DMS)';
+  document.getElementById('ctrlMeta').textContent = 'HCaja Data Pipeline · ' + fmt(s.TotalHeadcount) + ' karyawan / employees · periode ' + s.Month;
+  const prevRate = prev ? DATA.turnover[i-1].Termination/prev.TotalHeadcount*100 : null;
+  const prevGrowth = (i>1) ? (prev.TotalHeadcount-DATA.summary[i-2].TotalHeadcount)/DATA.summary[i-2].TotalHeadcount*100 : null;
+  const hcDelta = prev ? s.TotalHeadcount-prev.TotalHeadcount : null;
+  const kpis = [
+    { v: fmt(s.TotalHeadcount), l: 'Total Headcount', c: 'var(--ink)',
+      pm: prev? `Bulan lalu (${prev.Month}): <b>${fmt(prev.TotalHeadcount)}</b>` : null,
+      pmd: prev? (hcDelta>=0?'\u25b2 +':'\u25bc ')+fmt(hcDelta)+' orang' : null,
+      pmc: prev? (hcDelta>=0?'var(--green)':'var(--red)') : null },
+    { v: (prev? pct(growth) : '\u2014'), l: 'Growth MoM', c: growth>=0 ? 'var(--green)' : 'var(--red)',
+      pm: prevGrowth!==null? `Bulan lalu (${prev.Month}): <b>${pct(prevGrowth)}</b>` : null,
+      pmd: prevGrowth!==null? ((growth-prevGrowth)>=0?'\u25b2 ':'\u25bc ')+pct(growth-prevGrowth)+' pt' : null,
+      pmc: prevGrowth!==null? ((growth-prevGrowth)>=0?'var(--green)':'var(--red)') : null },
+    { v: pctID(rate)+'%', l: `Turnover Rate (target \u2264 ${pctID(TURNOVER_TARGET)}%)`, c: rate>TURNOVER_TARGET ? 'var(--red)' : 'var(--green)',
+      pm: prevRate!==null? `Bulan lalu (${prev.Month}): <b>${pctID(prevRate)}%</b>` : null,
+      pmd: prevRate!==null? ((rate-prevRate)<=0?'\u25bc ':'\u25b2 ')+pct(rate-prevRate)+' pt' : null,
+      pmc: prevRate!==null? ((rate-prevRate)<=0?'var(--green)':'var(--red)') : null }
+  ];
+  document.getElementById('heroKpis').innerHTML = kpis.map(k=>
+    `<div><div class="v" style="color:${k.c}">${k.v}</div><div class="l">${k.l}</div>${k.pm?`<div class="pm">${k.pm}</div>`:''}${k.pmd?`<div class="pmd" style="color:${k.pmc}">${k.pmd} vs bulan lalu</div>`:''}</div>`).join('');
+}
+
+const SECTION_RENDER = [
+  renderHero,
+  renderExec,
+  renderCompare,
+  ()=>renderCompanySection(COMPANIES[0]),
+  ()=>renderCompanySection(COMPANIES[1]),
+  ()=>renderCompanySection(COMPANIES[2]),
+  renderStatusTab,
+  renderTerminasiTab,
+  renderTakeaway,
+  renderAppendix
+];
+
+function renderAll(){
+  SECTION_RENDER.forEach(fn=>fn());
+  renderParamTab();
+}
+
+function buildMonthSelector(){
+  const sel = document.getElementById('monthSelect');
+  DATA.summary.forEach((s,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = s.Month;
+    if(i===currentMonthIdx) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', e=>{
+    currentMonthIdx = parseInt(e.target.value);
+    renderAll();
+  });
+}
+
+/* ===================== EXPORT PDF (hero + semua section) ===================== */
+async function exportPDF(){
+  const btn = document.getElementById('exportBtn');
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = '\u23f3 Menyiapkan\u2026';
+  try{
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p','mm','a4');
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const targets = [document.querySelector('.hero'), ...document.querySelectorAll('section.report')];
+    for(let i=0;i<targets.length;i++){
+      btn.textContent = `\u23f3 Halaman ${i+1}/${targets.length}\u2026`;
+      const canvas = await html2canvas(targets[i], {scale:2, backgroundColor:'#FFFFFF', useCORS:true});
+      const imgData = canvas.toDataURL('image/png');
+      const imgW = pageW - 16;
+      const imgH = canvas.height * imgW / canvas.width;
+      if(i>0) pdf.addPage();
+      if(imgH <= pageH - 16){
+        pdf.addImage(imgData, 'PNG', 8, 8, imgW, imgH);
+      } else {
+        const ratio = canvas.width / imgW;
+        const pageSliceH = (pageH - 16) * ratio;
+        let remaining = canvas.height, srcY = 0, firstPage = true;
+        while(remaining > 0){
+          if(!firstPage) pdf.addPage();
+          const sliceCanvas = document.createElement('canvas');
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = Math.min(pageSliceH, canvas.height - srcY);
+          const sctx = sliceCanvas.getContext('2d');
+          sctx.drawImage(canvas, 0, srcY, canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+          const sliceImg = sliceCanvas.toDataURL('image/png');
+          const sliceImgH = sliceCanvas.height * imgW / canvas.width;
+          pdf.addImage(sliceImg, 'PNG', 8, 8, imgW, sliceImgH);
+          srcY += sliceCanvas.height;
+          remaining -= sliceCanvas.height;
+          firstPage = false;
+        }
+      }
+    }
+    const monthLabel = DATA.summary[currentMonthIdx].Month;
+    pdf.save(`HCaja_Monthly_Workforce_Report_${monthLabel}.pdf`);
+  } catch(err){
+    alert('Export gagal / Export failed: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+  }
+}
+
+/* ===================== TAB 10: PARAMETER ===================== */
+function renderParamTab(){
+  const grid = document.getElementById('paramGrid');
+  if(!grid) return;
+  grid.innerHTML = Object.keys(PARAM_DEFAULTS).map(k=>{
+    const d = PARAM_DEFAULTS[k];
+    const step = d.step!==undefined ? d.step : 0.1;
+    const min = d.min!==undefined ? d.min : 0;
+    const max = d.max!==undefined ? d.max : 999;
+    return `<div class="param-card">
+      <label for="param_${k}">${d.label}</label>
+      <div class="en">${d.en} \u00b7 default: ${d.v}</div>
+      <input type="number" id="param_${k}" value="${PARAMS[k]}" step="${step}" min="${min}" max="${max}">
+      <div class="hint">${d.hint}</div>
+    </div>`;
+  }).join('');
+}
+
+function applyParams(){
+  Object.keys(PARAM_DEFAULTS).forEach(k=>{
+    const el = document.getElementById('param_'+k);
+    if(!el) return;
+    let v = parseFloat(el.value);
+    if(!isFinite(v)) v = PARAM_DEFAULTS[k].v;
+    const d = PARAM_DEFAULTS[k];
+    if(d.min!==undefined) v = Math.max(d.min, v);
+    if(d.max!==undefined) v = Math.min(d.max, v);
+    if(k==='decimals') v = Math.round(v);
+    PARAMS[k] = v;
+  });
+  TURNOVER_TARGET = PARAMS.target;
+  try{ localStorage.setItem('hcaja_wfreport_params', JSON.stringify(PARAMS)); }catch(e){}
+  renderAll();
+  const st = document.getElementById('paramStatus');
+  if(st){ st.textContent = '\u2713 Parameter diterapkan \u2014 seluruh section dihitung ulang.'; setTimeout(()=>{ st.textContent=''; }, 4000); }
+}
+
+function resetParams(){
+  Object.keys(PARAM_DEFAULTS).forEach(k=> PARAMS[k] = PARAM_DEFAULTS[k].v);
+  TURNOVER_TARGET = PARAMS.target;
+  try{ localStorage.removeItem('hcaja_wfreport_params'); }catch(e){}
+  renderAll();
+  const st = document.getElementById('paramStatus');
+  if(st){ st.textContent = '\u21ba Parameter dikembalikan ke default.'; setTimeout(()=>{ st.textContent=''; }, 4000); }
+}
+
+/* ===================== SCROLLSPY NAV ===================== */
+function initScrollSpy(){
+  const nav = document.getElementById('secNav');
+  if(!nav) return;
+  const links = Array.from(nav.querySelectorAll('a[href^="#"]'));
+  const secs = links.map(a=>document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  let pendingId = null;      /* section tujuan saat chip diklik */
+  let pendingSince = 0;
+
+  /* geser chip aktif ke tengah bar nav — HANYA scroll horizontal container nav,
+     tidak pernah menyentuh scroll halaman (scrollIntoView membatalkan smooth scroll
+     halaman yang sedang berjalan → penyebab "stuck") */
+  function centerChip(a){
+    const target = a.offsetLeft - (nav.clientWidth - a.offsetWidth)/2;
+    nav.scrollTo({left: Math.max(0, target), behavior:'smooth'});
+  }
+
+  function setActive(id){
+    links.forEach(a=>{
+      const on = a.getAttribute('href') === '#'+id;
+      if(on && !a.classList.contains('active')) centerChip(a);
+      a.classList.toggle('active', on);
+    });
+  }
+
+  function offsetTop(){
+    const ctrl = document.querySelector('.ctrlbar');
+    return (ctrl? ctrl.offsetHeight:0) + nav.offsetHeight + 30;
+  }
+
+  function targetY(sec){
+    return Math.max(0, sec.offsetTop - offsetTop() + 26);
+  }
+
+  function onScroll(){
+    /* selama menuju section yang diklik, chip tujuan tetap aktif sampai tiba
+       (atau timeout 2,5 dtk sebagai pengaman) */
+    if(pendingId){
+      const sec = document.getElementById(pendingId);
+      const arrived = sec && Math.abs(window.scrollY - targetY(sec)) < 6;
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      if(arrived || atBottom || Date.now() - pendingSince > 2500){ pendingId = null; }
+      else return;
+    }
+    const y = window.scrollY + offsetTop();
+    let current = secs.length ? secs[0].id : null;
+    for(const sec of secs){ if(sec.offsetTop <= y) current = sec.id; }
+    /* di dasar halaman: aktifkan section terakhir */
+    if(secs.length && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4){
+      current = secs[secs.length-1].id;
+    }
+    if(current) setActive(current);
+  }
+
+  links.forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      const id = a.getAttribute('href').slice(1);
+      const sec = document.getElementById(id);
+      if(!sec) return;
+      e.preventDefault(); /* kendalikan scroll sendiri agar offset & lock konsisten */
+      pendingId = id;
+      pendingSince = Date.now();
+      setActive(id);
+      window.scrollTo({top: targetY(sec), behavior:'smooth'});
+      if(history.replaceState) history.replaceState(null, '', '#'+id);
+    });
+  });
+
+  /* jika user menyentuh/menggulir manual di tengah animasi, lepaskan lock
+     agar spy langsung responsif kembali */
+  ['wheel','touchstart'].forEach(ev=>
+    window.addEventListener(ev, ()=>{ pendingId = null; }, {passive:true})
+  );
+
+  let ticking = false;
+  window.addEventListener('scroll', ()=>{
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(()=>{ onScroll(); ticking = false; });
+  }, {passive:true});
+  onScroll();
+}
+
+/* ===================== INIT ===================== */
+buildMonthSelector();
+renderAll();
+initScrollSpy();
+</script>
+</body>
+</html>
