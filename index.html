@@ -304,7 +304,27 @@ footer{text-align:center;padding:8px 16px 0;font-size:11px;color:var(--disabled)
      huruf & padding dirapatkan agar Jan–Des muat selebar halaman;
    - grid yang memuat tabel ditumpuk 1 kolom agar tabel mendapat lebar penuh;
    - blok (chart, KPI, baris tabel, insight) tidak boleh terbelah antar halaman. */
-body.pdf-export .no-print{display:none !important;}
+body.pdf-export .hero .no-print, body.pdf-export section.report .no-print{display:none !important;}
+/* bar kontrol tetap tampil saat ekspor, tapi dikunci agar periode/tombol tidak diubah di tengah proses */
+body.pdf-export .ctrlbar select, body.pdf-export .ctrlbar .btn, body.pdf-export .secnav{pointer-events:none;opacity:.6;}
+body.pdf-export .ctrlbar #exportBtn, body.pdf-export .ctrlbar #printBtn{opacity:1;}
+/* panel progres ekspor */
+.export-toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  width:min(420px,calc(100vw - 32px));background:#fff;border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 12px 32px rgba(17,24,39,.18);padding:14px 16px 12px;z-index:60;transition:opacity .2s,transform .2s;}
+.export-toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto;}
+.export-toast .et-head{display:flex;align-items:center;gap:10px;}
+.export-toast .et-ic{flex:0 0 34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;color:#fff;letter-spacing:.3px;background:#DC2626;}
+.export-toast .et-ic.ppt{background:#D24726;}
+.export-toast .et-title{font-size:13px;font-weight:700;color:var(--ink);}
+.export-toast .et-step{font-size:11.5px;color:var(--sub);margin-top:1px;}
+.export-toast .et-pct{margin-left:auto;font-size:13px;font-weight:700;color:var(--primary);font-variant-numeric:tabular-nums;}
+.export-toast .et-bar{height:6px;background:var(--secondary-soft);border-radius:999px;margin-top:10px;overflow:hidden;}
+.export-toast .et-fill{height:100%;width:0;background:var(--primary);border-radius:999px;transition:width .3s ease;}
+.export-toast.done .et-fill{background:var(--green);} .export-toast.done .et-pct{color:var(--green);}
+.export-toast.fail .et-fill{background:var(--red);} .export-toast.fail .et-pct{color:var(--red);}
+@media print{.export-toast{display:none !important;}}
 body.pdf-export section.report, body.pdf-export .hero{box-shadow:none !important;}
 body.pdf-export .tbl-wrap{overflow:visible !important;}
 body.pdf-export table.data{min-width:0 !important;}
@@ -350,6 +370,12 @@ body.pdf-export .grid:has(.tbl-wrap){grid-template-columns:1fr !important;}
 <body>
 
 <!-- sticky control bar -->
+<div class="export-toast" id="exportToast" role="status" aria-live="polite">
+  <div class="et-head"><span class="et-ic" id="etIc">PDF</span>
+    <div><div class="et-title" id="etTitle">Menyiapkan export…</div><div class="et-step" id="etStep">&nbsp;</div></div>
+    <span class="et-pct" id="etPct">0%</span></div>
+  <div class="et-bar"><div class="et-fill" id="etFill"></div></div>
+</div>
 <div class="ctrlbar no-print">
   <img id="logoTop" alt="HCaja">
   <div class="ttl">
@@ -2386,12 +2412,39 @@ function refreshChartsForLayout(){
   const dims = list.map(c=>{ const p=c.canvas.parentNode; return [p.clientWidth, p.clientHeight]; });
   list.forEach((c,k)=>{ c.canvas.style.display=''; try{ c.resize(dims[k][0]||undefined, dims[k][1]||undefined); c.update('none'); }catch(e){} });
 }
-async function withExportMode(btn, fn){
+/* ---- panel progres ekspor (tampil di bawah layar selama proses) ---- */
+let _etTimer = null;
+function exportProgress(fmt){
+  const box = document.getElementById('exportToast');
+  const set = (title, step, pct, state)=>{
+    if(!box) return;
+    clearTimeout(_etTimer);
+    box.classList.remove('done','fail'); if(state) box.classList.add(state);
+    const ic = document.getElementById('etIc');
+    ic.textContent = fmt==='pptx' ? 'PPT' : 'PDF'; ic.classList.toggle('ppt', fmt==='pptx');
+    document.getElementById('etTitle').textContent = title;
+    document.getElementById('etStep').textContent = step || '\u00a0';
+    const v = Math.max(0, Math.min(100, Math.round(pct)));
+    document.getElementById('etPct').textContent = v + '%';
+    document.getElementById('etFill').style.width = v + '%';
+    box.classList.add('show');
+  };
+  const name = fmt==='pptx' ? 'PowerPoint' : (fmt==='print' ? 'PDF untuk dicetak' : 'PDF');
+  return {
+    step: (step, pct)=>set(`Membuat ${name}\u2026`, step, pct),
+    done: (msg)=>{ set(`${name} selesai`, msg || 'File sudah diunduh \u2014 cek folder Downloads.', 100, 'done');
+                   _etTimer = setTimeout(()=>box && box.classList.remove('show'), 3500); },
+    fail: (msg)=>{ set(`Export ${name} gagal`, msg, 100, 'fail');
+                   _etTimer = setTimeout(()=>box && box.classList.remove('show'), 6000); }
+  };
+}
+async function withExportMode(btn, fn, prog){
   const original = btn.textContent;
   btn.disabled = true; btn.textContent = '\u23f3 Menyiapkan\u2026';
   const scrollY0 = window.scrollY;
   const animDefault = Chart.defaults.animation;
   try{
+    if(prog) prog.step('Menyiapkan tampilan laporan', 3);
     document.body.classList.add('pdf-export');
     Chart.defaults.animation = false;
     window.scrollTo(0,0);
@@ -2400,7 +2453,7 @@ async function withExportMode(btn, fn){
     await new Promise(r=>setTimeout(r,400));
     await fn();
   } catch(err){
-    alert('Export gagal / Export failed: ' + err.message);
+    if(prog) prog.fail(err.message); else alert('Export gagal / Export failed: ' + err.message);
   } finally {
     document.body.classList.remove('pdf-export');
     Chart.defaults.animation = animDefault;
@@ -2469,6 +2522,7 @@ async function exportPDF(mode){
   /* mode 'print' → PDF yang sama dibuka di tab baru dengan dialog cetak otomatis */
   const isPrint = (mode === 'print');
   const btn = document.getElementById(isPrint ? 'printBtn' : 'exportBtn');
+  const prog = exportProgress(isPrint ? 'print' : 'pdf');
   await withExportMode(btn, async ()=>{
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({orientation:'p', unit:'mm', format:'a4', compress:true});
@@ -2480,7 +2534,9 @@ async function exportPDF(mode){
     for(let t=0; t<targets.length; t++){
       const el = targets[t];
       btn.textContent = `\u23f3 PDF ${t+1}/${targets.length}\u2026`;
-      const { iv } = exportLayoutInfo(el, CH * el.offsetWidth / CW);
+      const { iv, title } = exportLayoutInfo(el, CH * el.offsetWidth / CW);
+      prog.step(`Section ${t+1} dari ${targets.length} \u00b7 ${title || 'Cover'}`, 5 + t/targets.length*85);
+      await new Promise(r=>setTimeout(r,30));
       const canvas = await html2canvas(el, {scale:EXPORT_SCALE, backgroundColor:'#FFFFFF', useCORS:true, logging:false,
         windowWidth: document.documentElement.clientWidth});
       const pxPerMm = canvas.width / CW, total = canvas.height;
@@ -2502,6 +2558,7 @@ async function exportPDF(mode){
       cursor += GAP;
       if(t < targets.length-1 && BOTTOM - cursor < 25) newPage();
     }
+    prog.step('Menambahkan header, footer & nomor halaman', 92);
     const { stamp, cutoff, monthLabel } = exportStamp();
     const n = pdf.getNumberOfPages();
     for(let p=1; p<=n; p++){
@@ -2520,20 +2577,24 @@ async function exportPDF(mode){
     if(isPrint){
       pdf.autoPrint();
       const win = window.open(pdf.output('bloburl'), '_blank');
-      if(!win){ pdf.save(fname); alert('Pop-up diblokir browser. PDF telah diunduh — silakan cetak dari file tersebut.'); }
+      if(!win){ pdf.save(fname); prog.done(`Pop-up diblokir \u2014 ${n} halaman diunduh, cetak dari file tersebut.`); }
+      else prog.done(`${n} halaman \u2014 dialog cetak dibuka di tab baru.`);
     } else {
       pdf.save(fname);
+      prog.done(`${n} halaman \u00b7 ${fname}`);
     }
-  });
+  }, prog);
 }
 
 /* ===================== POWERPOINT (16:9) ===================== */
 async function exportPPTX(){
   const btn = document.getElementById('exportBtn');
+  const prog = exportProgress('pptx');
   if(typeof PptxGenJS === 'undefined'){
     const o = btn.textContent; btn.disabled = true; btn.textContent = '\u23f3 Memuat PowerPoint\u2026';
+    prog.step('Memuat modul PowerPoint (sekali saja)', 1);
     try{ await loadScriptOnce(PPTX_LIB_URLS); }
-    catch(err){ alert('Export PPTX gagal: ' + err.message); btn.disabled = false; btn.textContent = o; return; }
+    catch(err){ prog.fail(err.message); btn.disabled = false; btn.textContent = o; return; }
     btn.disabled = false; btn.textContent = o;
   }
   await withExportMode(btn, async ()=>{
@@ -2566,6 +2627,8 @@ async function exportPPTX(){
       btn.textContent = `\u23f3 PPTX ${t+1}/${targets.length}\u2026`;
       const pageCss = MAX_CSS;
       const info = exportLayoutInfo(el, pageCss*1.4);
+      prog.step(`Section ${t+1} dari ${targets.length} \u00b7 ${info.title || 'Cover'}`, 5 + t/targets.length*80);
+      await new Promise(r=>setTimeout(r,30));
       const canvas = await html2canvas(el, {scale:EXPORT_SCALE, backgroundColor:'#FFFFFF', useCORS:true, logging:false,
         windowWidth: document.documentElement.clientWidth});
       const total = canvas.height, maxPx = MAX_CSS * EXPORT_SCALE;
@@ -2612,8 +2675,11 @@ async function exportPPTX(){
     }
     /* nomor slide */
     slides.forEach((s,k)=>s.addText(`${k+1} / ${slides.length}`, {x:SW-MX-2, y:7.06, w:2, h:0.3, fontFace:'Arial', fontSize:9, color:SUB, align:'right', margin:0, isTextBox:true}));
-    await pptx.writeFile({ fileName: `HCaja_Monthly_Workforce_Report_${monthLabel}.pptx` });
-  });
+    prog.step(`Menyusun file PowerPoint (${slides.length} slide)`, 90);
+    const fname = `HCaja_Monthly_Workforce_Report_${monthLabel}.pptx`;
+    await pptx.writeFile({ fileName: fname });
+    prog.done(`${slides.length} slide \u00b7 ${fname}`);
+  }, prog);
 }
 
 /* ===================== TAB 10: PARAMETER ===================== */
