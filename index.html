@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HCaja Monthly Workforce Report v7.18 (Sep-26) — HCIS Anteraja</title>
+<title>HCaja Monthly Workforce Report v7.20 (Sep-26) — HCIS Anteraja</title>
 <link rel="icon" href="data:,">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
@@ -92,9 +92,17 @@ main{max-width:980px;margin:0 auto;padding:24px clamp(10px,3vw,20px);display:fle
 .hero .agency{font-size:10.5px;letter-spacing:1.5px;color:var(--sub);font-weight:600;margin-top:6px;}
 .hero h1{margin:14px 0 4px;font-size:clamp(22px,5.5vw,34px);font-weight:700;color:var(--ink);}
 .hero .sub{font-size:clamp(12px,2.4vw,15px);color:var(--sub);}
-.hero .kpis{display:flex;justify-content:center;gap:clamp(12px,2.6vw,26px);margin-top:22px;flex-wrap:wrap;}
-.hero .kpis>div{min-width:150px;max-width:220px;}
-.hero .kpis .kpi-break{flex-basis:100%;height:0;margin:0;padding:0;min-width:0;max-width:none;}
+.hero .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px clamp(12px,2.4vw,20px);
+  max-width:800px;margin:22px auto 0;align-items:stretch;}
+/* 6 kartu dalam grid 3×2: lebar kolom & tinggi baris sama → atas-bawah simetris.
+   Semua kartu punya padding & bingkai yang sama (transparan), hanya kartu Total
+   yang diberi latar, sehingga posisi angka tetap sejajar antar kolom. */
+.hero .kpis>div{min-width:0;padding:12px 14px 10px;border:1px solid transparent;border-radius:12px;
+  display:flex;flex-direction:column;align-items:stretch;}
+.hero .kpis .kpi-total{background:var(--secondary-soft);border-color:var(--line);}
+.hero .kpis .kpi-total .l{font-weight:600;color:var(--secondary);}
+.hero .kpis .kpi-break{display:none;}
+@media(max-width:560px){.hero .kpis{grid-template-columns:1fr;max-width:340px;}}
 .hero .kpis .v{font-size:clamp(22px,5vw,32px);font-weight:700;}
 .hero .kpis .l{font-size:10.5px;color:var(--sub);}
 .hero .kpis .pm{font-size:11px;color:var(--sub);margin-top:7px;padding-top:6px;border-top:1px dashed var(--line);}
@@ -345,7 +353,7 @@ body.pdf-export .grid:has(.tbl-wrap){grid-template-columns:1fr !important;}
 <div class="ctrlbar no-print">
   <img id="logoTop" alt="HCaja">
   <div class="ttl">
-    Monthly Workforce Auto-Report <span class="badge" style="margin-left:4px;">v7.18</span>
+    Monthly Workforce Auto-Report <span class="badge" style="margin-left:4px;">v7.20</span>
     <div class="meta" id="ctrlMeta">HCaja Data Pipeline · Summary_History + Turnover_History + Demografi</div>
   </div>
   <label>Periode:
@@ -548,7 +556,7 @@ body.pdf-export .grid:has(.tbl-wrap){grid-template-columns:1fr !important;}
 
 <footer>
   HCaja Monthly Workforce Report · HCIS — PT Tri Adi Bersama (Anteraja) · Dihitung otomatis per karyawan dari file Demografi (sheet Active &amp; Resign)<br>
-  HCaja Design System v1.6 — enterprise, flat, light UI · Report v7.18 — data Januari–September 2026 (resign September + Outsource Jun–Sep)
+  HCaja Design System v1.6 — enterprise, flat, light UI · Report v7.20 — data Januari–September 2026 (resign September + Outsource Jun–Sep)
 </footer>
 
 <section class="report" id="param">
@@ -2235,7 +2243,20 @@ function renderHero(){
   const pOrg = (i>0 && gPrev.organik)? tgPrev.organik/gPrev.organik*100 : null;
   const pMit = (i>0 && gPrev.mitra)?   tgPrev.mitra/gPrev.mitra*100     : null;
 
+  /* growth bulan sebelumnya sebagai pembanding kartu Growth MoM (tidak tersedia untuk Januari,
+     karena baseline Des-25 tidak punya pembanding) */
+  const gPrev2 = (i>=1) ? groupStatus(i-2) : null;
+  const prevGrowth = (gPrev2 && gPrev2.total) ? (gPrev.total-gPrev2.total)/gPrev2.total*100 : null;
+  const dTot = gNow.total-gPrev.total;
+
+  /* v7.20 — urutan cover:
+     baris atas  : TOTAL KARYAWAN AKTIF · Total Organik · Total Mitra   (jumlah orang)
+     baris bawah : Growth MoM · Turnover Organik · Turnover Mitra        (persentase) */
   const kpis = [
+    { v: fmt(gNow.total), l: 'Total Karyawan Aktif (Organik + Mitra)', c: 'var(--ink)', big: true,
+      pm: `${pvLabel}: <b>${fmt(gPrev.total)}</b><br>Organik ${pctID(gNow.organik/gNow.total*100)}% \u00b7 Mitra ${pctID(gNow.mitra/gNow.total*100)}%`,
+      pmd: (dTot>=0?'\u25b2 +':'\u25bc ')+fmt(dTot)+' orang',
+      pmc: dTot>=0?'var(--green)':'var(--red)' },
     { v: fmt(gNow.organik), l: 'Total Headcount Organik', c: 'var(--blue)',
       pm: `${pvLabel}: <b>${fmt(gPrev.organik)}</b> \u00b7 PKWT ${fmt(gNow.pkwt)} / PKWTT ${fmt(gNow.pkwtt)}`,
       pmd: (dOrg>=0?'\u25b2 +':'\u25bc ')+fmt(dOrg)+' orang',
@@ -2245,9 +2266,10 @@ function renderHero(){
       pmd: (dMit>=0?'\u25b2 +':'\u25bc ')+fmt(dMit)+' orang',
       pmc: dMit>=0?'var(--green)':'var(--red)' },
     { v: pct(growth), l: 'Growth MoM (total grup)', c: growth>=0 ? 'var(--green)' : 'var(--red)',
-      pm: `Total headcount: <b>${fmt(gNow.total)}</b> (${pvLabel}: ${fmt(gPrev.total)})`,
-      pmd: ((gNow.total-gPrev.total)>=0?'\u25b2 +':'\u25bc ')+fmt(gNow.total-gPrev.total)+' orang',
-      pmc: (gNow.total-gPrev.total)>=0?'var(--green)':'var(--red)' },
+      pm: prevGrowth!==null ? `${pvLabel}: <b>${pct(prevGrowth)}</b> \u00b7 ${fmt(gPrev.total)} \u2192 ${fmt(gNow.total)}`
+                            : `${fmt(gPrev.total)} \u2192 ${fmt(gNow.total)} orang`,
+      pmd: prevGrowth!==null ? (((growth-prevGrowth)>=0?'\u25b2 ':'\u25bc ')+pct(growth-prevGrowth)+' pt') : null,
+      pmc: prevGrowth!==null ? ((growth-prevGrowth)>=0?'var(--green)':'var(--red)') : null },
     { v: pctID(rOrg)+'%', l: `Turnover Rate Organik (target \u2264 ${pctID(TURNOVER_TARGET)}%)`, c: rOrg>TURNOVER_TARGET ? 'var(--red)' : 'var(--green)',
       pm: pOrg!==null? `${pvLabel}: <b>${pctID(pOrg)}%</b> \u00b7 ${fmt(tgNow.organik)} terminasi organik` : null,
       pmd: pOrg!==null? ((rOrg-pOrg)<=0?'\u25bc ':'\u25b2 ')+pct(rOrg-pOrg)+' pt' : null,
@@ -2257,9 +2279,8 @@ function renderHero(){
       pmd: pMit!==null? ((rMit-pMit)<=0?'\u25bc ':'\u25b2 ')+pct(rMit-pMit)+' pt' : null,
       pmc: pMit!==null? ((rMit-pMit)<=0?'var(--green)':'var(--red)') : null }
   ];
-  /* 3 KPI di baris atas, 2 KPI turnover (Organik & Mitra) sebaris di bawahnya */
   document.getElementById('heroKpis').innerHTML = kpis.map((k,ix)=>
-    `<div><div class="v" style="color:${k.c}">${k.v}</div><div class="l">${k.l}</div>${k.pm?`<div class="pm">${k.pm}</div>`:''}${k.pmd?`<div class="pmd" style="color:${k.pmc}">${k.pmd} vs bulan lalu</div>`:''}</div>`
+    `<div${k.big?' class="kpi-total"':''}><div class="v" style="color:${k.c}">${k.v}</div><div class="l">${k.l}</div>${k.pm?`<div class="pm">${k.pm}</div>`:''}${k.pmd?`<div class="pmd" style="color:${k.pmc}">${k.pmd} vs bulan lalu</div>`:''}</div>`
     + (ix===2 ? '<div class="kpi-break"></div>' : '')).join('');
 }
 
